@@ -54,7 +54,7 @@ git clone https://github.com/the-cyber-boardroom/MGraph-AI__Service__Base.git
 cd MGraph-AI__Service__Base
 
 # Install dependencies
-pip install -r tests/requirements-test.txt
+pip install -r requirements-test.txt
 pip install -e .
 
 # Set environment variables

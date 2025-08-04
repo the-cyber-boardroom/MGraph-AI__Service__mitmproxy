@@ -18,7 +18,7 @@ runs:
     - name: Install python dependencies
       shell: bash
       run: |
-        pip install -r tests/requirements-test.txt
+        pip install -r requirements-test.txt
         pip install -e .
 
     - name: Git Update Current Branch

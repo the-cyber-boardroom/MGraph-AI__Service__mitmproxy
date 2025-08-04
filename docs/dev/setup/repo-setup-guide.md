@@ -13,13 +13,13 @@ This guide walks through the complete setup process from initial repository crea
 
 In your GitHub repository, go to Settings → Secrets and variables → Actions, and add:
 
-| Secret Name | Description | Example |
-|-------------|-------------|---------|
-| `AWS_SECRET_ACCESS_KEY` | AWS secret key | `wJalrXUtnFEMI/K7MDENG/bPxRfiCY...` |
-| `AWS_DEFAULT_REGION` | AWS region | `us-east-1` |
-| `AWS_ACCOUNT_ID` | AWS account ID | `123456789012` |
-| `AWS_ACCESS_KEY_ID` | AWS access key | `AKIAIOSFODNN7EXAMPLE` |
-| `FAST_API__AUTH__API_KEY__NAME` | API key header name | `x-api-key` |
+| Secret Name | Description | Example                    |
+|-------------|-------------|----------------------------|
+| `AWS_SECRET_ACCESS_KEY` | AWS secret key | `wJalrXUtnFEMI/K7MDENG...` |
+| `AWS_DEFAULT_REGION` | AWS region | `us-east-1`                |
+| `AWS_ACCOUNT_ID` | AWS account ID | `123456789012`             |
+| `AWS_ACCESS_KEY_ID` | AWS access key | `AKIAIOSF...`              |
+| `FAST_API__AUTH__API_KEY__NAME` | API key header name | `x-api-key`                |
 | `FAST_API__AUTH__API_KEY__VALUE` | API key value | `your-secure-api-key-here` |
 
 ## 🚀 Step 2: Initial Repository Setup
