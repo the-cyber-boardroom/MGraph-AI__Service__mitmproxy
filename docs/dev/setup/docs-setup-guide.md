@@ -156,10 +156,10 @@ This docs system is:
 * Structured to mirror code
 * Rich in context, examples, and visuals
 * Suitable for both internal engineering and external contributors
-* Easily machine-parseable and CORE-digestible
+* Easily machine-parseable and BASE-digestible
 
 It's ideal for:
 
-* **CORE-based code analysis**
+* **BASE-based code analysis**
 * **Audit-ready documentation**
 * **Refactor-safe and test-oriented systems**

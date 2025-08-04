@@ -14,7 +14,7 @@ class test_Info__Service(TestCase):
     def test_get_status(self):
         with self.info_service as _:
             result = _.get_status()
-            assert result['service'] == 'mgraph-ai-service-core'
+            assert result['service'] == 'mgraph-ai-service-base'
             assert result['status']  == 'operational'
             assert 'version'   in result
             assert 'timestamp' in result

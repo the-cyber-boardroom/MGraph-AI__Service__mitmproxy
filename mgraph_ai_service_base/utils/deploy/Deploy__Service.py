@@ -7,7 +7,7 @@ class Deploy__Service(Deploy__Serverless__Fast_API):
     def deploy_lambda(self):
         with super().deploy_lambda() as _:
             # Add any service-specific environment variables here
-            # Example: _.set_env_variable('CORE_API_KEY', get_env('CORE_API_KEY'))
+            # Example: _.set_env_variable('BASE_API_KEY', get_env('BASE_API_KEY'))
             return _
 
     def handler(self):

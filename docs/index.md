@@ -1,8 +1,8 @@
-# MGraph-AI Service CORE Documentation
+# MGraph-AI Service Base Documentation
 
 ## Overview
 
-MGraph-AI Service CORE will be a production-ready FastAPI microservice that provides Large Language Model (CORE) capabilities through a secure, type-safe API. 
+MGraph-AI Service Base will be a production-ready FastAPI microservice that provides Large Language Model (BASE) capabilities through a secure, type-safe API. 
 
 ## Architecture
 
@@ -54,7 +54,7 @@ git clone https://github.com/the-cyber-boardroom/MGraph-AI__Service__Base.git
 cd MGraph-AI__Service__Base
 
 # Install dependencies
-pip install -r requirements-test.txt
+pip install -r tests/requirements-test.txt
 pip install -e .
 
 # Set environment variables

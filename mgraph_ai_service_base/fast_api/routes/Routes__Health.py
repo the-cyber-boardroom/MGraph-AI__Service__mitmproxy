@@ -7,13 +7,13 @@ class Routes__Health(Fast_API_Routes):
 
     def status(self):
         """Basic health check endpoint"""
-        return {"status": "healthy", "service": "mgraph-ai-service-core"}
+        return {"status": "healthy", "service": "mgraph-ai-service-base"}
 
     def details(self):
         """Detailed health check with component status"""
         return {
             "status": "healthy",
-            "service": "mgraph-ai-service-core",
+            "service": "mgraph-ai-service-base",
             "components": {
                 "api": "operational",
                 "dependencies": "operational"

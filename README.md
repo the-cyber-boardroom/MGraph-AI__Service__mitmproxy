@@ -1,4 +1,4 @@
-# MGraph-AI Service CORE
+# MGraph-AI Service Base
 
 [![Current Release](https://img.shields.io/badge/release-v0.1.0-blue)](https://github.com/the-cyber-boardroom/MGraph-AI__Service__Base/releases)
 [![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/downloads/)
@@ -7,7 +7,22 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-green)](LICENSE)
 [![CI Pipeline - DEV](https://github.com/the-cyber-boardroom/MGraph-AI__Service__Base/actions/workflows/ci-pipeline__dev.yml/badge.svg)](https://github.com/the-cyber-boardroom/MGraph-AI__Service__Base/actions)
 
-This will be a production-ready FastAPI microservice that provides CORE (Large Language Model) capabilities through a secure, type-safe API.
+A production-ready FastAPI microservice template for building MGraph-AI services. This template provides a complete scaffold with CI/CD pipeline, AWS Lambda deployment, and type-safe architecture.
+
+## 🎯 Purpose
+
+This repository serves as the base template for creating new MGraph-AI services. It includes:
+- Complete FastAPI application structure
+- Multi-stage CI/CD pipeline (dev, qa, prod)
+- AWS Lambda deployment configuration
+- Type-safe architecture using OSBot-Utils
+- Comprehensive test coverage
+- API key authentication
+- Health check and monitoring endpoints
+
+## 📚 Creating a New Service
+
+To create a new service from this template, see [Creating Services from MGraph-AI__Service__Base](docs/dev/non-functional-requirements/version-1_0_0/README.md).
 
 ## 🚀 Features
 
@@ -39,7 +54,7 @@ git clone https://github.com/the-cyber-boardroom/MGraph-AI__Service__Base.git
 cd MGraph-AI__Service__Base
 
 # Install dependencies
-pip install -r requirements-test.txt
+pip install -r tests/requirements-test.txt
 pip install -e .
 
 # Set environment variables
@@ -99,7 +114,7 @@ python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
-pip install -r requirements-test.txt
+pip install -r tests/requirements-test.txt
 pip install -e .
 ```
 

@@ -1,0 +1,108 @@
+name: CI Pipeline (Base)
+
+on:
+  workflow_call:
+    inputs:
+      git_branch:
+        required: true
+        type: string
+      release_type:
+        required: false
+        type: string
+        default: ""
+      target_deploy:
+        required: true
+        type: string
+      should_increment_tag:
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      AWS_SECRET_ACCESS_KEY:
+        required: false
+      AWS_DEFAULT_REGION:
+        required: false
+      AWS_ACCOUNT_ID:
+        required: false
+      AWS_ACCESS_KEY_ID:
+        required: false
+      FAST_API__AUTH__API_KEY__NAME:
+        required: false
+      FAST_API__AUTH__API_KEY__VALUE:
+        required: false
+
+env:
+  PACKAGE_NAME: 'mgraph_ai_service_base'
+
+jobs:
+  run-tests:
+    name: "Run tests"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start Local Stack
+        uses: owasp-sbot/OSBot-GitHub-Actions/.github/actions/docker__local-stack@dev
+        with:
+          LOCAL_STACK_SERVICES: 's3,lambda,iam,logs'
+
+      - name: "run-tests"
+        uses: owasp-sbot/OSBot-GitHub-Actions/.github/actions/pytest__run-tests@dev
+        with:
+          test_target: "tests/unit"
+        env:
+          FAST_API__AUTH__API_KEY__NAME: 'api-key__in_github_test'
+          FAST_API__AUTH__API_KEY__VALUE: 'this-is-the-value-of-the-api-key'
+
+  increment-tag:
+    if: inputs.should_increment_tag
+    name: Increment Tag
+    runs-on: ubuntu-latest
+    needs: run-tests
+    steps:
+      - uses: actions/checkout@v4
+      - name: Increment Tag
+        uses: owasp-sbot/OSBot-GitHub-Actions/.github/actions/git__increment-tag@dev
+        with:
+          release_type: ${{ inputs.release_type }}
+
+  check-aws-credentials:
+    name: Check AWS Credentials
+    runs-on: ubuntu-latest
+    needs: run-tests
+    outputs:
+      has-credentials: ${{ steps.check.outputs.has-credentials }}
+    steps:
+      - name: Check if AWS credentials are configured
+        id: check
+        run: |
+          if [[ -n "${{ secrets.AWS_ACCESS_KEY_ID }}" ]] && \
+             [[ -n "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]] && \
+             [[ -n "${{ secrets.AWS_DEFAULT_REGION }}" ]] && \
+             [[ -n "${{ secrets.AWS_ACCOUNT_ID }}" ]]; then
+            echo "has-credentials=true" >> $GITHUB_OUTPUT
+            echo "✅ AWS credentials are configured"
+          else
+            echo "has-credentials=false" >> $GITHUB_OUTPUT
+            echo "⚠️  AWS credentials are not configured - deployment will be skipped"
+          fi
+
+  aws_deploy_lambda:
+    if: needs.check-aws-credentials.outputs.has-credentials == 'true'
+    name: Deploy to AWS Lambda
+    runs-on: ubuntu-latest
+    needs : [check-aws-credentials, increment-tag]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy Service Lambda function
+        uses: ./.github/actions/aws__deploy__lambda
+        env:
+          AWS_SECRET_ACCESS_KEY         : ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION            : ${{ secrets.AWS_DEFAULT_REGION }}
+          AWS_ACCOUNT_ID                : ${{ secrets.AWS_ACCOUNT_ID }}
+          AWS_ACCESS_KEY_ID             : ${{ secrets.AWS_ACCESS_KEY_ID }}
+          FAST_API__AUTH__API_KEY__NAME : ${{ secrets.FAST_API__AUTH__API_KEY__NAME }}
+          FAST_API__AUTH__API_KEY__VALUE: ${{ secrets.FAST_API__AUTH__API_KEY__VALUE }}
+        with:
+          target: ${{ inputs.target_deploy }}

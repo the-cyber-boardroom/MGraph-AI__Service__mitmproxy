@@ -4,7 +4,7 @@ from mgraph_ai_service_base.utils.Version import version__mgraph_ai_service_base
 class Info__Service(Type_Safe):
 
     def get_status(self):                               # Get current service status
-        return { "service"    : "mgraph-ai-service-core",       # todo change this to use Type_Safe class
+        return { "service"    : "mgraph-ai-service-base",       # todo change this to use Type_Safe class
                  "version"    : version__mgraph_ai_service_base,
                  "status"     : "operational",
                  "environment": self._get_environment(),

@@ -1,4 +1,4 @@
-# MGraph-AI Service CORE - Setup Guide
+# MGraph-AI Service Base - Setup Guide
 
 This guide walks through the complete setup process from initial repository creation to v1.0.0 release.
 
@@ -31,7 +31,7 @@ cd MGraph-AI__Service__Base
 
 # 2. Create initial commit (empty repo)
 git init
-echo "# MGraph-AI Service CORE" > temp.md
+echo "# MGraph-AI Service Base" > temp.md
 git add temp.md
 git commit -m "Initial repository creation"
 git branch -M main
@@ -53,7 +53,7 @@ rm temp.md
 
 # 7. Commit the scaffold
 git add .
-git commit -m "First commit for MGraph-AI Service CORE - v1.0.0 scaffold with FastAPI setup, tests, and CI/CD pipeline"
+git commit -m "First commit for MGraph-AI Service Base - v1.0.0 scaffold with FastAPI setup, tests, and CI/CD pipeline"
 
 # 8. Push to dev branch
 git push -u origin dev
@@ -83,9 +83,9 @@ After pushing to dev:
 ## 🌐 Step 4: Configure CloudFront and DNS
 
 ### Naming Convention
-- Dev: `dev.core.mgraph.ai`
-- QA: `qa.core.mgraph.ai`
-- Prod: `prod.core.mgraph.ai`
+- Dev: `dev.base.mgraph.ai`
+- QA: `qa.base.mgraph.ai`
+- Prod: `prod.base.mgraph.ai`
 
 Pattern: `{stage}.{service-name}.mgraph.ai`
 
@@ -95,7 +95,7 @@ Pattern: `{stage}.{service-name}.mgraph.ai`
    - Origin Domain: Lambda Function URL (without https://)
    - Origin Protocol Policy: HTTPS Only
    - Viewer Protocol Policy: Redirect HTTP to HTTPS
-   - Alternate Domain Names (CNAMEs): `dev.core.mgraph.ai`
+   - Alternate Domain Names (CNAMEs): `dev.base.mgraph.ai`
    - SSL Certificate: Use ACM certificate for `*.mgraph.ai`
 
 2. **Configure Behaviors**:
@@ -109,7 +109,7 @@ Pattern: `{stage}.{service-name}.mgraph.ai`
 ### DNS Configuration
 
 1. **Create Route 53 A Record**:
-   - Record name: `dev.core`
+   - Record name: `dev.base`
    - Record type: A
    - Alias: Yes
    - Route traffic to: CloudFront distribution
@@ -119,8 +119,8 @@ Pattern: `{stage}.{service-name}.mgraph.ai`
 
 3. **Test the domain**:
    ```bash
-   curl https://dev.core.mgraph.ai/health
-   # Should return: {"status":"healthy","service":"mgraph-ai-service-core"}
+   curl https://dev.base.mgraph.ai/health
+   # Should return: {"status":"healthy","service":"mgraph-ai-service-base"}
    ```
 
 ## 📈 Step 5: Release to Main/QA
@@ -131,7 +131,7 @@ git checkout dev
 git pull origin dev
 
 # 2. Run the release script
-./gh-release-to-main.sh
+./scripts/gh-release-to-main.sh
 
 # This script will:
 # - Checkout main
@@ -145,7 +145,7 @@ git pull origin dev
    - Check GitHub Actions for "CI Pipeline - MAIN" workflow
    - Version should increment to v0.2.0
    - Lambda function `mgraph_ai_service_base-qa` should be created
-   - Repeat CloudFront/DNS setup for `qa.core.mgraph.ai`
+   - Repeat CloudFront/DNS setup for `qa.base.mgraph.ai`
 
 ## 🚢 Step 6: Deploy to Production
 
@@ -158,7 +158,7 @@ git pull origin dev
 
 2. **Verify production deployment**:
    - Lambda function `mgraph_ai_service_base-prod` should be created
-   - Repeat CloudFront/DNS setup for `prod.core.mgraph.ai`
+   - Repeat CloudFront/DNS setup for `prod.base.mgraph.ai`
 
 ## 🏷️ Step 7: Release v1.0.0
 
@@ -226,15 +226,15 @@ After completing all steps:
 2. **Verify all environments**:
    ```bash
    # Dev environment
-   curl https://dev.core.mgraph.ai/info/version
+   curl https://dev.base.mgraph.ai/info/version
    # Should return: {"version":"v1.0.1"}
 
    # QA environment
-   curl https://qa.core.mgraph.ai/info/version
+   curl https://qa.base.mgraph.ai/info/version
    # Should return: {"version":"v0.2.0"}
 
    # Prod environment
-   curl https://prod.core.mgraph.ai/info/version
+   curl https://prod.base.mgraph.ai/info/version
    # Should return: {"version":"v0.2.0"}
    ```
 
@@ -283,4 +283,4 @@ You now have:
 
 ---
 
-This completes the setup! Your MGraph-AI Service CORE is now fully operational across all environments.
+This completes the setup! Your MGraph-AI Service Base is now fully operational across all environments.
