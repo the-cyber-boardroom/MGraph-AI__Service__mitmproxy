@@ -62,15 +62,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Update Build Information
-        if: inputs.should_increment_tag
-        uses: ./.github/actions/git__update-build-info
-        with:
-          service_name      : ${{ env.PACKAGE_NAME }}
-          target_environment: ${{ inputs.target_deploy }}
-          branch_name       : ${{ inputs.git_branch }}
-          commit_changes    : 'true'
-
       - name: Increment Tag
         if: inputs.should_increment_tag
         uses: owasp-sbot/OSBot-GitHub-Actions/.github/actions/git__increment-tag@dev
