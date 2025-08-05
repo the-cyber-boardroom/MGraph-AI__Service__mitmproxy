@@ -1,19 +1,32 @@
 from osbot_fast_api.api.Fast_API_Routes                import Fast_API_Routes
-from mgraph_ai_service_base.service.info.Info__Service import Info__Service
-from mgraph_ai_service_base.utils.Version              import version__mgraph_ai_service_base
+from mgraph_ai_service_base.service.info.Service_Info  import Service_Info
 
-ROUTES_PATHS__INFO = ['/info/version', '/info/status']
+TAG__ROUTES_INFO                  = 'info'
+ROUTES_PATHS__INFO                = [ f'/{TAG__ROUTES_INFO}/health'  ,
+                                      f'/{TAG__ROUTES_INFO}/server'  ,
+                                      f'/{TAG__ROUTES_INFO}/status'  ,
+                                      f'/{TAG__ROUTES_INFO}/versions']
+ROUTES_INFO__HEALTH__RETURN_VALUE = {'status': 'ok'}
 
 class Routes__Info(Fast_API_Routes):
-    tag = 'info'
-    info_service: Info__Service
+    tag         : str          = 'info'
+    service_info: Service_Info
 
-    def version(self):                                          # Get service version
-        return {'version': version__mgraph_ai_service_base}
+    def health(self):
+        return ROUTES_INFO__HEALTH__RETURN_VALUE
 
-    def status(self):                                           # Get service status information
-        return self.info_service.status()
+    def server(self):                                             # Get service versions
+        return self.service_info.server_info()
+
+    def status(self):                                               # Get service status information
+        return self.service_info.service_info()
+
+    def versions(self):                                             # Get service versions
+        return self.service_info.versions()
+
 
     def setup_routes(self):
-        self.add_route_get(self.version)
-        self.add_route_get(self.status)
+        self.add_route_get(self.health  )
+        self.add_route_get(self.server  )
+        self.add_route_get(self.status  )
+        self.add_route_get(self.versions)

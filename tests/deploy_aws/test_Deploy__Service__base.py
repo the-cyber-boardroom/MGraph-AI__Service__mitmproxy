@@ -1,5 +1,4 @@
 import pytest
-from unittest                                                      import TestCase
 from osbot_utils.utils.Misc                                        import list_set
 from osbot_fast_api_serverless.deploy.Deploy__Serverless__Fast_API import DEFAULT__ERROR_MESSAGE__WHEN_FAST_API_IS_OK
 from mgraph_ai_service_base.config                                 import LAMBDA_DEPENDENCIES__FAST_API_SERVERLESS
