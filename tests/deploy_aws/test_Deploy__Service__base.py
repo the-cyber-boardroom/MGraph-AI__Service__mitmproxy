@@ -7,14 +7,14 @@ from mgraph_ai_service_base.utils.Version                          import versio
 from mgraph_ai_service_base.utils.deploy.Deploy__Service           import Deploy__Service
 
 
-class test_Deploy__Service__base(TestCase):     # Base class for deployment tests - override stage in subclasses
+class test_Deploy__Service__base():     # Base class for deployment tests - override stage in subclasses
 
     stage: str = None  # Must be set by subclass
 
     @classmethod
     def setUpClass(cls):
         if cls.stage is None:
-            raise ValueError("Subclass must set 'stage' class variable")
+            pytest.skip("Can't run when 'stage' class variable is not set")
 
         cls.deploy_fast_api = Deploy__Service(stage=cls.stage)
 

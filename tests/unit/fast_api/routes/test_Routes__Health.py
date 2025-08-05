@@ -19,12 +19,12 @@ class test_Routes__Health(TestCase):
     def test_health(self):
         with self.routes_health as _:
             response = _.status()
-            assert response == {"status": "healthy", "service": "mgraph-ai-service-base"}
+            assert response == {"status": "healthy", "service": "mgraph_ai_service_base"}
 
     def test_health_detailed(self):
         with self.routes_health as _:
             response = _.details()
             assert response['status']  == "healthy"
-            assert response['service'] == "mgraph-ai-service-base"
+            assert response['service'] == "mgraph_ai_service_base"
             assert 'components' in response
             assert 'timestamp'  in response

@@ -12,7 +12,7 @@ class Routes__Info(Fast_API_Routes):
         return {'version': version__mgraph_ai_service_base}
 
     def status(self):                                           # Get service status information
-        return self.info_service.get_status()
+        return self.info_service.status()
 
     def setup_routes(self):
         self.add_route_get(self.version)

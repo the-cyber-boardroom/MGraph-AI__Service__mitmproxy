@@ -20,6 +20,6 @@ class test_Routes__Info__client(TestCase):
         response = self.client.get('/info/status')
         result = response.json()
         assert response.status_code == 200
-        assert result['service']    == 'mgraph-ai-service-base'
+        assert result['service']    == 'mgraph_ai_service_base'
         assert result['status']     == 'operational'
         assert 'timestamp'          in result

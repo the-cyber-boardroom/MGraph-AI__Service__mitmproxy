@@ -3,7 +3,7 @@ import os
 if os.getenv('AWS_REGION'):  # only execute if we are not running inside an AWS Lambda function
 
     from osbot_aws.aws.lambda_.boto3__lambda import load_dependencies       # using the lightweight file (which only has the boto3 calls required to load_dependencies)
-    LAMBDA_DEPENDENCIES =  ['osbot-fast-api-serverless']
+    LAMBDA_DEPENDENCIES =  ['osbot-fast-api-serverless==v1.2.0']
 
     load_dependencies(LAMBDA_DEPENDENCIES)
 

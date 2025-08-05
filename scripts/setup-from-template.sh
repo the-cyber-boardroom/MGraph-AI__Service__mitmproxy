@@ -9,7 +9,6 @@ REPO_NAME=$(basename -s .git "$REPO_URL")
 
 # Extract service name (MGraph-AI__Service__Auth -> mgraph_ai_service_auth)
 SERVICE_NAME=$(echo "$REPO_NAME" | sed 's/MGraph-AI__Service__/mgraph_ai_service_/' | tr '[:upper:]' '[:lower:]' | tr '-' '_')
-SERVICE_NAME_HYPHEN=$(echo "$SERVICE_NAME" | tr '_' '-')
 SERVICE_DISPLAY_NAME=$(echo "$REPO_NAME" | sed 's/__/ /g' | sed 's/-/ /g')
 
 echo "📦 Repository: $REPO_NAME"
@@ -51,7 +50,6 @@ find . -type f \( -name "*.py" -o -name "*.md" -o -name "*.yml" -o -name "*.yaml
 
     # Replace service names
     sed -i.tmp "s/mgraph_ai_service_base/$SERVICE_NAME/g" "$file"
-    sed -i.tmp "s/mgraph-ai-service-base/$SERVICE_NAME_HYPHEN/g" "$file"
     sed -i.tmp "s/MGraph-AI__Service__Base/$REPO_NAME/g" "$file"
     sed -i.tmp "s/MGraph-AI Service Base/$SERVICE_DISPLAY_NAME/g" "$file"
 

@@ -120,7 +120,7 @@ Pattern: `{stage}.{service-name}.mgraph.ai`
 3. **Test the domain**:
    ```bash
    curl https://dev.base.mgraph.ai/health
-   # Should return: {"status":"healthy","service":"mgraph-ai-service-base"}
+   # Should return: {"status":"healthy","service":"mgraph_ai_service_base"}
    ```
 
 ## 📈 Step 5: Release to Main/QA
