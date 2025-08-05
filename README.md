@@ -1,6 +1,6 @@
 # MGraph-AI Service Base
 
-[![Current Release](https://img.shields.io/badge/release-v0.3.0-blue)](https://github.com/the-cyber-boardroom/MGraph-AI__Service__Base/releases)
+[![Current Release](https://img.shields.io/badge/release-v0.3.3-blue)](https://github.com/the-cyber-boardroom/MGraph-AI__Service__Base/releases)
 [![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.116.1-009688)](https://fastapi.tiangolo.com/)
 [![AWS Lambda](https://img.shields.io/badge/AWS-Lambda-orange)](https://aws.amazon.com/lambda/)
@@ -12,13 +12,15 @@ A production-ready FastAPI microservice template for building MGraph-AI services
 ## 🎯 Purpose
 
 This repository serves as the base template for creating new MGraph-AI services. It includes:
-- Complete FastAPI application structure
-- Multi-stage CI/CD pipeline (dev, qa, prod)
-- AWS Lambda deployment configuration
-- Type-safe architecture using OSBot-Utils
-- Comprehensive test coverage
-- API key authentication
-- Health check and monitoring endpoints
+- ✅ Complete FastAPI application structure  
+- ✅ Multi-stage CI/CD pipeline (dev, qa, prod)
+- ✅ AWS Lambda deployment configuration
+- ✅ Type-safe architecture using OSBot-Utils
+- ✅ Comprehensive test coverage
+- ✅ API key authentication
+- ✅ Health check and monitoring endpoints
+
+**Note**: This is a template repository. To create your own service, see [Creating Services from Template](docs/dev/non-functional-requirements/version-1_0_0/README.md).
 
 ## 📚 Creating a New Service
 
@@ -62,7 +64,7 @@ export FAST_API__AUTH__API_KEY__NAME="x-api-key"
 export FAST_API__AUTH__API_KEY__VALUE="your-secret-key"
 
 # Run locally
-./run-locally.sh
+./scripts/run-locally.sh
 # or
 uvicorn mgraph_ai_service_base.fast_api.lambda_handler:app --reload --host 0.0.0.0 --port 10011
 ```

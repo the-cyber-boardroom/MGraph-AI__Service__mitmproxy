@@ -6,9 +6,7 @@ from osbot_utils.utils.Env                                            import get
 from starlette.testclient                                             import TestClient
 from osbot_fast_api_serverless.utils.testing.skip_tests               import skip__if_not__in_github_actions
 from mgraph_ai_service_base.fast_api.Service__Fast_API                import Service__Fast_API
-from mgraph_ai_service_base.fast_api.routes.Routes__Health            import ROUTES_PATHS__HEALTH
-from mgraph_ai_service_base.fast_api.routes.Routes__Info              import ROUTES_PATHS__INFO
-from mgraph_ai_service_base.utils.Version                             import version__mgraph_ai_service_base
+from mgraph_ai_service_base.fast_api.routes.Routes__Info              import ROUTES_PATHS__INFO, ROUTES_INFO__HEALTH__RETURN_VALUE
 from tests.unit.Service__Fast_API__Test_Objs                          import setup__service_fast_api_test_objs, Service__Fast_API__Test_Objs, TEST_API_KEY__NAME
 
 
@@ -33,7 +31,7 @@ class test_Service__Fast_API__client(TestCase):
             assert self.client              == _.fast_api__client
 
     def test__client__auth(self):
-        path                = '/info/version'
+        path                = '/info/health'
         auth_key_name       = get_env(ENV_VAR__FAST_API__AUTH__API_KEY__NAME )
         auth_key_value      = get_env(ENV_VAR__FAST_API__AUTH__API_KEY__VALUE)
         headers             = {auth_key_name: auth_key_value}
@@ -49,7 +47,7 @@ class test_Service__Fast_API__client(TestCase):
 
         assert auth_key_name                 is not None
         assert auth_key_value                is not None
-        assert response__with_auth.json()    == {'version': version__mgraph_ai_service_base}
+        assert response__with_auth.json()    == ROUTES_INFO__HEALTH__RETURN_VALUE
 
     def test__check_if_local_stack_is_setup(self):
         skip__if_not__in_github_actions()
@@ -57,4 +55,4 @@ class test_Service__Fast_API__client(TestCase):
             assert _.is_local_stack_configured_and_available() is True
 
     def test__config_fast_api_routes(self):
-        assert self.fast_api.routes_paths() == sorted(ROUTES_PATHS__HEALTH + ROUTES_PATHS__INFO)
+        assert self.fast_api.routes_paths() == sorted(ROUTES_PATHS__INFO)

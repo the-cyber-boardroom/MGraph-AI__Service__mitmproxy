@@ -13,7 +13,7 @@ At the top level:
 
 ```
 docs/
-├── index.md                      <- Landing page / overview
+├── README.md                      <- Landing page / overview
 ├── type_safe/                    <- Feature/module-level documentation
 ├── code/<package path>/         <- File-specific technical documentation
 │   └── (mirrors source tree)       (e.g. docs/code/osbot_utils/helpers/...)

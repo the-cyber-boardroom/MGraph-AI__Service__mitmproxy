@@ -62,7 +62,7 @@ export FAST_API__AUTH__API_KEY__NAME="x-api-key"
 export FAST_API__AUTH__API_KEY__VALUE="your-secret-key"
 
 # Run locally
-./run-locally.sh
+./scripts/run-locally.sh
 ```
 
 ### Running Tests

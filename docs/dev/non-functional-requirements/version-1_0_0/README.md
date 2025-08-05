@@ -147,7 +147,7 @@ echo "1. Review the generated files"
 echo "2. Update the README.md with your service details"
 echo "3. Configure GitHub secrets for deployment"
 echo "4. Run: pip install -r requirements-test.txt"
-echo "5. Run: ./run-locally.sh"
+echo "5. Run: ./scripts/run-locally.sh"
 ```
 
 ## 🔄 Syncing Template Updates
