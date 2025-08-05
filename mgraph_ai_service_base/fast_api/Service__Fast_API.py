@@ -9,7 +9,7 @@ class Service__Fast_API(Serverless__Fast_API):
 
     def fast_api__title(self):                                       # todo: move this to the Fast_API class
         return FAST_API__TITLE
-    
+
     def setup(self):
         super().setup()
         self.setup_fast_api_title_and_version()

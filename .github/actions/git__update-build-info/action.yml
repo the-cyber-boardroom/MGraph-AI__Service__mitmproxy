@@ -1,0 +1,95 @@
+name: "Update Build Information"
+description: "Updates build information including commit hash and metadata"
+inputs:
+  service_name:
+    description: "Name of the service (package name)"
+    required: true
+  target_environment:
+    description: "Target deployment environment (dev, qa, prod)"
+    required: true
+  branch_name:
+    description: "Git branch name"
+    required: true
+  commit_changes:
+    description: "Whether to commit the changes"
+    required: false
+    default: 'true'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Update build information
+      shell: bash
+      run: |
+        # Create build info directory if it doesn't exist
+        mkdir -p ${{ inputs.service_name }}/build_info
+        
+        # Get current commit hash (full and short)
+        COMMIT_HASH=$(git rev-parse HEAD)
+        COMMIT_HASH_SHORT=$(git rev-parse --short HEAD)
+        
+        # Get current timestamp
+        BUILD_TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+        
+        # Get current version from version file
+        CURRENT_VERSION=$(cat ${{ inputs.service_name }}/version | tr -d '\n')
+        
+        # Get branch name
+        BRANCH_NAME="${{ inputs.branch_name }}"
+        
+        # Get commit message (escape quotes for JSON)
+        COMMIT_MESSAGE=$(git log -1 --pretty=%B | head -n 1 | sed 's/"/\\"/g')
+        
+        # Get commit author
+        COMMIT_AUTHOR=$(git log -1 --pretty=%an)
+        
+        # Get commit timestamp
+        COMMIT_TIMESTAMP=$(git log -1 --pretty=%cd --date=iso)
+        
+        # Create commit_hash file (simple format for easy reading)
+        echo "$COMMIT_HASH" > ${{ inputs.service_name }}/build_info/commit_hash
+        
+        # Create detailed build_info.json file
+        cat > ${{ inputs.service_name }}/build_info.json << EOF
+        {
+          "version": "$CURRENT_VERSION",
+          "commit_hash": "$COMMIT_HASH",
+          "commit_hash_short": "$COMMIT_HASH_SHORT",
+          "branch": "$BRANCH_NAME",
+          "build_timestamp": "$BUILD_TIMESTAMP",
+          "commit_message": "$COMMIT_MESSAGE",
+          "commit_author": "$COMMIT_AUTHOR",
+          "commit_timestamp": "$COMMIT_TIMESTAMP",
+          "environment": "${{ inputs.target_environment }}",
+          "github_run_id": "${{ github.run_id }}",
+          "github_run_number": "${{ github.run_number }}",
+          "github_sha": "${{ github.sha }}",
+          "github_ref": "${{ github.ref }}",
+          "github_repository": "${{ github.repository }}",
+          "github_actor": "${{ github.actor }}",
+          "github_workflow": "${{ github.workflow }}",
+          "github_event_name": "${{ github.event_name }}"
+        }
+        EOF
+        
+        echo "📝 Build info updated:"
+        cat ${{ inputs.service_name }}/build_info.json | jq .
+
+    - name: Commit build info
+      if: inputs.commit_changes == 'true'
+      shell: bash
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        
+        git add ${{ inputs.service_name }}/build_info/
+        
+        # Check if there are changes to commit
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "chore: update build info for ${{ inputs.target_environment }} deployment [skip ci]"
+          echo "BUILD_INFO_UPDATED=true" >> $GITHUB_ENV
+          
+          git push origin HEAD:${{ github.ref_name }}
+        fi
