@@ -1,8 +1,8 @@
-# MGraph-AI Service CORE Documentation
+# MGraph-AI Service Base Documentation
 
 ## Overview
 
-MGraph-AI Service CORE will be a production-ready FastAPI microservice that provides Large Language Model (CORE) capabilities through a secure, type-safe API. 
+MGraph-AI Service Base will be a production-ready FastAPI microservice that provides Large Language Model (BASE) capabilities through a secure, type-safe API. 
 
 ## Architecture
 

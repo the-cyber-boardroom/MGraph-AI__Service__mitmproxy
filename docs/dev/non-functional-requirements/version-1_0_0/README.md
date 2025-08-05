@@ -173,7 +173,7 @@ Your repository name determines the service configuration:
 | Repository Name | Service Name (code) | Display Name |
 |----------------|-------------------|--------------|
 | `MGraph-AI__Service__Auth` | `mgraph_ai_service_auth` | MGraph-AI Service Auth |
-| `MGraph-AI__Service__Base` | `mgraph_ai_service_base` | MGraph-AI Service CORE |
+| `MGraph-AI__Service__Base` | `mgraph_ai_service_base` | MGraph-AI Service Base |
 | `MGraph-AI__Service__Data-Pipeline` | `mgraph_ai_service_data_pipeline` | MGraph-AI Service Data Pipeline |
 
 ## 📁 Template Structure

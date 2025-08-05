@@ -1,5 +1,10 @@
 from unittest                                              import TestCase
-from mgraph_ai_service_base.service.info.Info__Service     import Info__Service
+
+from osbot_utils.helpers.Timestamp_Now import Timestamp_Now
+
+from mgraph_ai_service_base.service.info.Info__Service                  import Info__Service
+from mgraph_ai_service_base.service.info.schemas.Schema__Service_Status import Schema__Service_Status, Enum__Service_Status
+from mgraph_ai_service_base.utils.Version                               import version__mgraph_ai_service_base
 
 
 class test_Info__Service(TestCase):
@@ -11,11 +16,11 @@ class test_Info__Service(TestCase):
         with self.info_service as _:
             assert type(_) == Info__Service
 
-    def test_get_status(self):
-        with self.info_service as _:
-            result = _.get_status()
-            assert result['service'] == 'mgraph-ai-service-core'
-            assert result['status']  == 'operational'
-            assert 'version'   in result
-            assert 'timestamp' in result
-            assert 'environment' in result
+    def test_status(self):
+        with self.info_service.status() as _:
+            assert type(_)      == Schema__Service_Status
+            assert _.service    == 'mgraph_ai_service_base'
+            assert _.status     == Enum__Service_Status.operational
+            assert _.version    == version__mgraph_ai_service_base
+            assert _.timestamp  <= Timestamp_Now()
+            assert _.environment == self.info_service.environment()

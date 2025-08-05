@@ -12,11 +12,11 @@ class test_Routes__Health__client(TestCase):
     def test__health(self):
         result = self.client.get('/health/status')
         assert result.status_code == 200
-        assert result.json() == {"status": "healthy", "service": "mgraph-ai-service-core"}
+        assert result.json() == {"status": "healthy", "service": "mgraph_ai_service_base"}
 
     def test__health_detailed(self):
         result = self.client.get('/health/details')
         assert result.status_code == 200
         response = result.json()
         assert response['status']  == "healthy"
-        assert response['service'] == "mgraph-ai-service-core"
+        assert response['service'] == "mgraph_ai_service_base"
