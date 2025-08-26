@@ -54,22 +54,22 @@ print_success "Dev branch created"
 
 # Step 3: Add template repository as remote
 print_step "Adding template repository..."
-git remote add template https://github.com/the-cyber-boardroom/MGraph-AI__Service__Base.git
+git remote add template https://github.com/the-cyber-boardroom/MGraph-AI__Service__mitmproxy.git
 print_success "Template remote added"
 
 # Step 4: Fetch and merge template
 print_step "Fetching and merging template..."
 git fetch template
-git merge template/main --allow-unrelated-histories -m "Initial import from MGraph-AI__Service__Base template"
+git merge template/main --allow-unrelated-histories -m "Initial import from MGraph-AI__Service__mitmproxy template"
 print_success "Template merged"
 
 # Step 5: Rename the service directory
-print_step "Renaming service directory from mgraph_ai_service_base to $SERVICE_NAME_UNDERSCORES..."
-if [ -d "mgraph_ai_service_base" ]; then
-    mv mgraph_ai_service_base "$SERVICE_NAME_UNDERSCORES"
+print_step "Renaming service directory from mgraph_ai_service_mitmproxy to $SERVICE_NAME_UNDERSCORES..."
+if [ -d "mgraph_ai_service_mitmproxy" ]; then
+    mv mgraph_ai_service_mitmproxy "$SERVICE_NAME_UNDERSCORES"
     print_success "Service directory renamed"
 else
-    print_error "mgraph_ai_service_base directory not found!"
+    print_error "mgraph_ai_service_mitmproxy directory not found!"
     exit 1
 fi
 
@@ -100,14 +100,14 @@ replace_in_files() {
     fi
 }
 
-# Replace "MGraph-AI Service Base" with the new service title
-replace_in_files "MGraph-AI Service Base" "$SERVICE_NAME_TITLE" "service title"
+# Replace "MGraph AI Service mitmproxy" with the new service title
+replace_in_files "MGraph AI Service mitmproxy" "$SERVICE_NAME_TITLE" "service title"
 
-# Replace "mgraph_ai_service_base" with the new package name
-replace_in_files "mgraph_ai_service_base" "$SERVICE_NAME_UNDERSCORES" "Python package name"
+# Replace "mgraph_ai_service_mitmproxy" with the new package name
+replace_in_files "mgraph_ai_service_mitmproxy" "$SERVICE_NAME_UNDERSCORES" "Python package name"
 
-# Replace "MGraph-AI__Service__Base" with the new repository name
-replace_in_files "MGraph-AI__Service__Base" "$REPO_NAME" "repository name"
+# Replace "MGraph-AI__Service__mitmproxy" with the new repository name
+replace_in_files "MGraph-AI__Service__mitmproxy" "$REPO_NAME" "repository name"
 
 print_success "All replacements completed"
 
@@ -144,7 +144,7 @@ print_step "Committing changes..."
 git add .
 git commit -m "Initialize $SERVICE_NAME_TITLE from template
 
-- Based on MGraph-AI__Service__Base v0.3.0
+- Based on MGraph-AI__Service__mitmproxy v0.3.0
 - Service name: $SERVICE_NAME_UNDERSCORES
 - Repository: $REPO_NAME
 - Automated setup complete"
