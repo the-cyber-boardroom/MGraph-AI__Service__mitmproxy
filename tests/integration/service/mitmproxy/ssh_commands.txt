@@ -1,0 +1,19 @@
+# View all logs
+sudo journalctl -u mitmproxy
+
+# Follow logs in real-time
+sudo journalctl -u mitmproxy -f
+
+# View last 100 lines
+sudo journalctl -u mitmproxy -n 100
+
+# View logs from last hour
+sudo journalctl -u mitmproxy --since "1 hour ago"
+
+ EC2_IP=....
+ url -x http://$EC2_IP:8080 https://httpbin.org/headers -k
+ ssh -i $EC2__PATH_SSH_KEY_FILE  ubuntu@$EC2__INSTANCE_IP
+
+
+sudo systemctl daemon-reload
+sudo systemctl restart mitmproxy

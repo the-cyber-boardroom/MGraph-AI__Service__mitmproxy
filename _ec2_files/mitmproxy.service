@@ -1,0 +1,15 @@
+[Unit]
+Description=mitmproxy web interface
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+ExecStart=/usr/bin/mitmweb --web-host 0.0.0.0 --web-port 8081 --set block_global=false -s /home/ubuntu/add_header.py
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
