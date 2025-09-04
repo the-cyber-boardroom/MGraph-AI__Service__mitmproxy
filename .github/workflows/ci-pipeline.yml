@@ -44,7 +44,7 @@ jobs:
       - name: Start Local Stack
         uses: owasp-sbot/OSBot-GitHub-Actions/.github/actions/docker__local-stack@dev
         with:
-          LOCAL_STACK_SERVICES: 's3,lambda,iam,logs'
+          LOCAL_STACK_SERVICES: 's3,lambda,iam,logs,ec2'
 
       - name: "run-tests"
         uses: owasp-sbot/OSBot-GitHub-Actions/.github/actions/pytest__run-tests@dev
