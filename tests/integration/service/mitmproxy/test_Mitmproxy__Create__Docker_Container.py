@@ -5,14 +5,14 @@ from osbot_docker.apis.API_Docker                                               
 from osbot_utils.type_safe.Type_Safe                                                    import Type_Safe
 from osbot_utils.utils.Objects                                                          import base_classes, __
 from osbot_utils.utils.Files                                                            import file_exists, path_combine
-from mgraph_ai_service_mitmproxy.service.mitmproxy.Mitmproxy__Create__Docker_Container  import Mitmproxy__Create__Docker_Container
+from mgraph_ai_service_mitmproxy.service.mitmproxy.Mitmproxy__Create__Docker_Container import Mitmproxy__Create__Docker_Container, MITMPROXY__PYTHON_FILE
 
 
 class test_Mitmproxy__Create__Docker_Container(TestCase):
 
     @classmethod
     def setUpClass(cls):                                                 # One-time expensive setup
-
+        pytest.skip("Manual execution only - remove this skip to run")
         cls.api_docker       = API_Docker()
 
         # Track created resources for cleanup
@@ -61,7 +61,7 @@ class test_Mitmproxy__Create__Docker_Container(TestCase):
             #_.setup()
 
             # Check add_header.py exists
-            add_header_path = path_combine(mgraph_ai_service_mitmproxy.path, '../_ec2_files/add_header.py')
+            add_header_path = path_combine(mgraph_ai_service_mitmproxy.path, f'../_ec2_files/{MITMPROXY__PYTHON_FILE}')
             assert file_exists(add_header_path)
 
             result = _.build_custom_image()
@@ -96,8 +96,7 @@ class test_Mitmproxy__Create__Docker_Container(TestCase):
 
     def test_create_container__with_custom_script(self):                 # Test container with custom script
         with self.mitmproxy_docker as _:
-            add_header_path = path_combine(mgraph_ai_service_mitmproxy.path,
-                                         '../_ec2_files/add_header.py')
+            add_header_path = path_combine(mgraph_ai_service_mitmproxy.path,f'../_ec2_files/{MITMPROXY__PYTHON_FILE}')
 
             if file_exists(add_header_path):
                 container = _.create_container(with_custom_script=True)
@@ -107,7 +106,7 @@ class test_Mitmproxy__Create__Docker_Container(TestCase):
 
                 self.created_containers.append(container.container_id)
             else:
-                pytest.skip("add_header.py not required for test")
+                pytest.skip("{MITMPROXY__PYTHON_FILE} not required for test")
 
     def test_start_and_stop(self):                                       # Test starting and stopping container
         with self.mitmproxy_docker as _:

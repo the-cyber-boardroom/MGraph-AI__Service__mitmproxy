@@ -10,6 +10,7 @@ from mgraph_ai_service_mitmproxy.schemas.docker.Safe_Str__Docker__Container_Name
 from mgraph_ai_service_mitmproxy.schemas.docker.Safe_Str__Docker__Image_Name     import Safe_Str__Docker__Image_Name
 from mgraph_ai_service_mitmproxy.schemas.docker.Safe_Str__Docker__Tag            import Safe_Str__Docker__Tag
 
+MITMPROXY__PYTHON_FILE = 'fastapi_interceptor.py' # 'add_header.py' #
 
 class Mitmproxy__Create__Docker_Container(Type_Safe):                    # Create and manage mitmproxy Docker containers
     api_docker       : API_Docker
@@ -43,15 +44,15 @@ class Mitmproxy__Create__Docker_Container(Type_Safe):                    # Creat
         # Create temp directory for Docker build context
         build_context = temp_folder()
 
-        # Path to add_header.py
-        add_header_path = path_combine(mgraph_ai_service_mitmproxy.path, '../_ec2_files/add_header.py')
+        # Path to {MITMPROXY__PYTHON_FILE}
+        add_header_path = path_combine(mgraph_ai_service_mitmproxy.path, f'../_ec2_files/{MITMPROXY__PYTHON_FILE}')
 
         if not file_exists(add_header_path):
             return False
 
-        # Copy add_header.py to build context
+        # Copy {MITMPROXY__PYTHON_FILE} to build context
         import shutil
-        shutil.copy(add_header_path, path_combine(build_context, 'add_header.py'))
+        shutil.copy(add_header_path, path_combine(build_context, MITMPROXY__PYTHON_FILE))
 
         # Handle certificates if requested
         cert_commands = ""
@@ -79,16 +80,24 @@ RUN cd /home/mitmproxy && \
         confdir_setting = '"--set", "confdir=/home/mitmproxy/certs/.mitmproxy", ' if include_certificates else ''
         dockerfile_content = f"""\
 FROM mitmproxy/mitmproxy:latest
+
+RUN pip install aiohttp
     
 # Copy custom script
-COPY add_header.py /home/mitmproxy/add_header.py
+COPY {MITMPROXY__PYTHON_FILE} /home/mitmproxy/{MITMPROXY__PYTHON_FILE}
 {cert_commands}
+
+# Set environment variables for FastAPI connection
+ENV FASTAPI_BASE_URL=http://host.docker.internal:10016
+ENV FASTAPI_API_KEY=your-secret-key-here
+
+
 # Set working directory
 WORKDIR /home/mitmproxy
 
 # Default command to run mitmproxy with the script
 ENTRYPOINT ["mitmdump"]
-CMD [{confdir_setting}"--listen-port", "8080", "--script", "/home/mitmproxy/add_header.py", "--set", "block_global=false"]
+CMD [{confdir_setting}"--listen-port", "8080", "--script", "/home/mitmproxy/{MITMPROXY__PYTHON_FILE}", "--set", "block_global=false"]
 """
 
         # Write Dockerfile
@@ -120,7 +129,7 @@ CMD [{confdir_setting}"--listen-port", "8080", "--script", "/home/mitmproxy/add_
                 self.certificates_path = default_cert_path
 
         if with_custom_script or with_certificates:
-            # Build custom image with add_header.py and optionally certificates
+            # Build custom image with {MITMPROXY__PYTHON_FILE} and optionally certificates
             if not self.build_custom_image(include_certificates=with_certificates):
                 print("Warning: Failed to build custom image, using default")
                 raise Exception("Failed to build custom image")
@@ -137,11 +146,11 @@ CMD [{confdir_setting}"--listen-port", "8080", "--script", "/home/mitmproxy/add_
             volumes = {}
             command_parts = ['mitmdump', '--listen-port', '8080', '--set', 'block_global=false']
 
-            # Mount add_header.py if available
-            add_header_path = path_combine(mgraph_ai_service_mitmproxy.path, '../_ec2_files/add_header.py')
+            # Mount {MITMPROXY__PYTHON_FILE} if available
+            add_header_path = path_combine(mgraph_ai_service_mitmproxy.path, '../_ec2_files/{MITMPROXY__PYTHON_FILE}')
             if file_exists(add_header_path):
-                volumes[add_header_path] = {'bind': '/home/mitmproxy/add_header.py', 'mode': 'ro'}
-                command_parts.extend(['--script', '/home/mitmproxy/add_header.py'])
+                volumes[add_header_path] = {'bind': '/home/mitmproxy/{MITMPROXY__PYTHON_FILE}', 'mode': 'ro'}
+                command_parts.extend(['--script', '/home/mitmproxy/{MITMPROXY__PYTHON_FILE}'])
 
             # Mount certificates if requested and not in image
             if with_certificates and self.certificates_path:
@@ -261,7 +270,7 @@ CMD [{confdir_setting}"--listen-port", "8080", "--script", "/home/mitmproxy/add_
         # Check if our custom header was added
         headers = response.json().get('headers', {})
 
-        # Check for custom header from add_header.py
+        # Check for custom header from {MITMPROXY__PYTHON_FILE}
         if 'X-Custom-Header' in headers:
             return True
 

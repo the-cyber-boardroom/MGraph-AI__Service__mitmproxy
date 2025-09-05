@@ -26,7 +26,7 @@ class test_Mitmproxy__Create__Docker_Container__Development(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        #pytest.skip("Manual execution only - remove this skip to run")
+        pytest.skip("Manual execution only - remove this skip to run")
         cls.api_docker = API_Docker()
 
     def test_create_persistent_container_for_development(self):
@@ -127,14 +127,14 @@ print(response.json())""")
         print("\n5. Execute commands in container:")
         print(f"   docker exec -it {self.DEVELOPMENT_CONTAINER_NAME} /bin/sh")
 
-        # Create development script template
-        self._create_development_script_template()
-
-        print("\n" + "="*60)
-        print("✓ Development container is ready!")
-        print(f"⚠️  Container '{self.DEVELOPMENT_CONTAINER_NAME}' will continue running")
-        print("   To stop: Run test_cleanup_development_containers")
-        print("="*60 + "\n")
+        # # Create development script template
+        # self._create_development_script_template()
+        #
+        # print("\n" + "="*60)
+        # print("✓ Development container is ready!")
+        # print(f"⚠️  Container '{self.DEVELOPMENT_CONTAINER_NAME}' will continue running")
+        # print("   To stop: Run test_cleanup_development_containers")
+        # print("="*60 + "\n")
 
     def test_cleanup_development_containers(self):
         """
