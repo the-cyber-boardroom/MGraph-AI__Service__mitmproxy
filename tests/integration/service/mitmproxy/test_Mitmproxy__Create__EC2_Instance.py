@@ -1,19 +1,19 @@
 import pytest
-from unittest                                                                     import TestCase
-from osbot_aws.aws.ec2.EC2                                                        import EC2
-from osbot_utils.utils.Dev                                                        import pprint
-from osbot_utils.utils.Env                                                        import load_dotenv, get_env
-from mgraph_ai_service_mitmproxy.service.mitmproxy.Create_EC2_Instance__Mitmproxy import Create_EC2_Instance__Mitmproxy
-from mgraph_ai_service_mitmproxy.utils.Version                                    import version__mgraph_ai_service_mitmproxy
+from unittest                                                                      import TestCase
+from osbot_aws.aws.ec2.EC2                                                         import EC2
+from osbot_utils.utils.Dev                                                         import pprint
+from osbot_utils.utils.Env                                                         import load_dotenv, get_env
+from mgraph_ai_service_mitmproxy.service.mitmproxy.Mitmproxy__Create__EC2_Instance import Mitmproxy__Create__EC2_Instance
+from mgraph_ai_service_mitmproxy.utils.Version                                     import version__mgraph_ai_service_mitmproxy
 
 
-class test_Create_EC2_Instance__CBR_Website_Beta(TestCase):
+class test_Mitmproxy__Create__EC2_Instance(TestCase):
 
     @classmethod
     def setUpClass(cls):
         pytest.skip("need manual execution")
         load_dotenv()
-        cls.create_ec2_instance = Create_EC2_Instance__Mitmproxy()
+        cls.create_ec2_instance = Mitmproxy__Create__EC2_Instance()
         cls.security_group_id   = get_env('EC2_TESTS__SECURITY_GROUP_ID'     )
         cls.ssh_key_name        = get_env('EC2_TESTS__PATH_SSH_KEY_FILE_NAME')
         cls.instance_id         = get_env('EC2_TESTS__EC2_INSTANCE_ID'       )

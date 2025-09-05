@@ -11,7 +11,8 @@ import mgraph_ai_service_mitmproxy
 
 DEFAULT__AWS__UBUNTU_LINUX_AMI  = 'ami-046c2381f11878233'
 DEFAULT__AWS__INSTANCE_TYPE     = 't2.micro'
-class Create_EC2_Instance__Mitmproxy(Type_Safe):
+
+class Mitmproxy__Create__EC2_Instance(Type_Safe):
     ec2 : EC2
 
     def create_kwargs(self, image_id=None):
@@ -27,13 +28,10 @@ class Create_EC2_Instance__Mitmproxy(Type_Safe):
                      spot_instance        = spot_instance                              )
 
     def create_ec2_instance(self, image_id=None, instance_name=None):
-        try:
-            ec2_instance = EC2_Instance()
-            ec2_instance.create_kwargs = self.create_kwargs(image_id=image_id)
-            return ec2_instance.create(instance_name=instance_name)
-        except Exception as e:
-            return status_error(message='failed to create EC2 instance',
-                                error=str(e))
+
+        ec2_instance = EC2_Instance()
+        ec2_instance.create_kwargs = self.create_kwargs(image_id=image_id)
+        return ec2_instance.create(instance_name=instance_name)
 
     def ec2_instance(self, instance_id):
         return EC2_Instance(instance_id=instance_id)
@@ -105,6 +103,6 @@ class Create_EC2_Instance__Mitmproxy(Type_Safe):
                     if response.get('stdout') == '/home/ubuntu\n':
                         print(f"[{i}  System has completed booted up :) ")
                         return
-                    pprint(response)
+                    #pprint(response)
                     raise Exception(f"Something really weird happened since the 'pwd' response from  {instance_id} was not expected: { response.get('stdout') }")
         raise Exception(f"it was not possible to execute ssh commands in the instance {instance_id}")
