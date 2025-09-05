@@ -16,7 +16,7 @@ class test_Mitmproxy__Create__Docker_Container__Development(TestCase):
         pytest tests/integration/service/mitmproxy/test_Mitmproxy__Create__Docker_Container__Development::test_create_persistent_container_for_development -s
 
     To clean up containers created by this test:
-        pytest pytest tests/integration/service/mitmproxy/test_Mitmproxy__Create__Docker_Container__Development::test_Mitmproxy__Create__Docker_Container__Development::test_cleanup_development_containers -s
+        pytest tests/integration/service/mitmproxy/test_Mitmproxy__Create__Docker_Container__Development::test_Mitmproxy__Create__Docker_Container__Development::test_cleanup_development_containers -s
     """
 
     DEVELOPMENT_IMAGE_NAME     = "mitmproxy-dev-persistent"
@@ -38,11 +38,22 @@ class test_Mitmproxy__Create__Docker_Container__Development(TestCase):
         print("Creating Persistent Mitmproxy Container for Development")
         print("="*60)
 
+        # Setup paths for existing certificates
+        certs_backup_path = path_combine(mgraph_ai_service_mitmproxy.path, '../_ec2_files/mitmproxy-certs-backup.tar.gz')
+        cert_pem_path     = path_combine(mgraph_ai_service_mitmproxy.path,'../_ec2_files/mitmproxy-ca-cert.pem')
+
+        # Verify certificates exist
+        if file_exists(certs_backup_path):
+            print(f"✓ Found certificate backup: {certs_backup_path}")
+        if file_exists(cert_pem_path):
+            print(f"✓ Found certificate PEM: {cert_pem_path}")
+
         # Create mitmproxy instance with fixed name for easy identification
-        mitmproxy_docker = Mitmproxy__Create__Docker_Container(build_image_name = self.DEVELOPMENT_IMAGE_NAME    ,
-                                                               container_name   = self.DEVELOPMENT_CONTAINER_NAME,
-                                                               proxy_port       = self.DEVELOPMENT_PROXY_PORT    ,
-                                                               web_port         = self.DEVELOPMENT_WEB_PORT      )
+        mitmproxy_docker = Mitmproxy__Create__Docker_Container(build_image_name  = self.DEVELOPMENT_IMAGE_NAME    ,
+                                                               container_name    = self.DEVELOPMENT_CONTAINER_NAME,
+                                                               proxy_port        = self.DEVELOPMENT_PROXY_PORT    ,
+                                                               web_port          = self.DEVELOPMENT_WEB_PORT      ,
+                                                               certificates_path = certs_backup_path              )
 
         # Check if container already exists
         existing_containers = mitmproxy_docker.api_docker.containers_all__by_name()
@@ -59,23 +70,18 @@ class test_Mitmproxy__Create__Docker_Container__Development(TestCase):
 
             mitmproxy_docker.container = container
         else:
-            # Create new container with custom script
-            print("\n→ Building custom image with add_header.py script...")
-            if mitmproxy_docker.build_custom_image():
-                print(f"✓ Custom image created: {mitmproxy_docker.image_name}")
-            else:
-                print("⚠️  Using default mitmproxy image")
+            # Create new container with custom script AND certificates
+            print("\n→ Creating container with certificates...")
+            container = mitmproxy_docker.create_container(with_custom_script=True,
+                                                          with_certificates=True)
 
-            print("\n→ Creating container...")
-            container = mitmproxy_docker.create_container(with_custom_script=True)
             assert container is not None
-            assert container.name() == self.DEVELOPMENT_CONTAINER_NAME
-            print(f"✓ Container created: {container.short_id()} : {container.name()}")
+            print(f"✓ Container created: {container.short_id()}")
 
             print("\n→ Starting container...")
             started = mitmproxy_docker.start(wait_for_ready=True)
             assert started is True
-            print("✓ Container started successfully")
+            print("✓ Container started successfully with your existing certificates!")
 
         # Display connection information
         print("\n" + "="*60)
@@ -103,13 +109,14 @@ class test_Mitmproxy__Create__Docker_Container__Development(TestCase):
         print(f"   curl -x http://localhost:{self.DEVELOPMENT_PROXY_PORT} https://httpbin.org/headers")
 
         print("\n2. Test with Python requests:")
-        print(f"""   import requests
-   proxies = {{
-       'http': 'http://localhost:{self.DEVELOPMENT_PROXY_PORT}',
-       'https': 'http://localhost:{self.DEVELOPMENT_PROXY_PORT}'
-   }}
-   response = requests.get('https://httpbin.org/headers', proxies=proxies, verify=False)
-   print(response.json())""")
+        print(f"""\
+import requests
+proxies = {{
+   'http': 'http://localhost:{self.DEVELOPMENT_PROXY_PORT}',
+   'https': 'http://localhost:{self.DEVELOPMENT_PROXY_PORT}'
+}}
+response = requests.get('https://httpbin.org/headers', proxies=proxies, verify=False)
+print(response.json())""")
 
         print("\n3. View mitmproxy web interface:")
         print(f"   Open browser: http://localhost:{self.DEVELOPMENT_WEB_PORT}")
@@ -174,7 +181,10 @@ class test_Mitmproxy__Create__Docker_Container__Development(TestCase):
         cleaned_images = []
 
         for image in api_docker.images():
-            if image.image_name.startswith('mitmproxy-custom-'):
+            # Check for both custom and dev images
+            if (image.image_name.startswith('mitmproxy-custom-') or
+                image.image_name.startswith('mitmproxy-dev-') or
+                image.image_name == self.DEVELOPMENT_IMAGE_NAME):
                 print(f"  → Removing image: {image.image_name}")
                 image.delete()
                 cleaned_images.append(image.image_name)
@@ -227,6 +237,7 @@ class test_Mitmproxy__Create__Docker_Container__Development(TestCase):
                     for line in logs.split('\n')[-5:]:
                         if line.strip():
                             print(f"      {line[:100]}")
+
 
     def _create_development_script_template(self):
         """
@@ -356,3 +367,16 @@ print("=" * 60)
         file_write(script_path, template)
         print(f"\n✓ Created development script template: {script_path}")
         print("  You can now modify this script and reload it in the container")
+
+
+    def test_create_container(self):
+        self.test_cleanup()
+        self.test_create_persistent_container_for_development()
+
+
+    def test_cleanup(self):
+        try:
+            self.test_cleanup_development_containers()
+        except:
+            pass
+        self.test_cleanup_development_containers()

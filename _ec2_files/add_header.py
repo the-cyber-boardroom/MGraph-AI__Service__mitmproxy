@@ -1,6 +1,6 @@
 """Add custom header to all requests and responses"""
 
-x_custom_header = "MGraph-AI-Proxy v0.1"
+x_custom_header = "MGraph-AI-Proxy v0.2"
 
 def request(flow):
     """

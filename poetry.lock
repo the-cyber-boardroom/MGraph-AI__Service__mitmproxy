@@ -354,14 +354,14 @@ osbot-utils = "*"
 
 [[package]]
 name = "osbot-docker"
-version = "0.4.1"
+version = "0.6.0"
 description = "OWASP Security Bot - Docker"
 optional = false
 python-versions = "<4.0,>=3.7"
 groups = ["main"]
 files = [
-    {file = "osbot_docker-0.4.1-py3-none-any.whl", hash = "sha256:94112aa88129742d75c19d5ab15c5f364d861c1cca735efa63a263af4dcb1787"},
-    {file = "osbot_docker-0.4.1.tar.gz", hash = "sha256:ffbbd48f5da18047729d4afa49637758dbebe5b3511345bbfebf970a04a105a7"},
+    {file = "osbot_docker-0.6.0-py3-none-any.whl", hash = "sha256:9b59f58543754679c6f790be9a4a5417c596b42cdd5f424efc24644cb7a57356"},
+    {file = "osbot_docker-0.6.0.tar.gz", hash = "sha256:c680b9796188d22be92843c9982b95d11f86ef835ab837267eb43e031e72e4dd"},
 ]
 
 [package.dependencies]

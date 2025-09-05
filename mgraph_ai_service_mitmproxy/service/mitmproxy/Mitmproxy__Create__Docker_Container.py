@@ -12,14 +12,15 @@ from mgraph_ai_service_mitmproxy.schemas.docker.Safe_Str__Docker__Tag           
 
 
 class Mitmproxy__Create__Docker_Container(Type_Safe):                    # Create and manage mitmproxy Docker containers
-    api_docker      : API_Docker
-    container       : Docker_Container                  = None
-    container_name  : Safe_Str__Docker__Container_Name  = None
-    image_name      : Safe_Str__Docker__Image_Name      = "mitmproxy/mitmproxy"
-    build_image_name: Safe_Str__Docker__Image_Name      = None
-    image_tag       : Safe_Str__Docker__Tag             = "latest"
-    proxy_port      : Safe_UInt__Port                   = 8080
-    web_port        : Safe_UInt__Port                   = 8081
+    api_docker       : API_Docker
+    container        : Docker_Container                  = None
+    container_name   : Safe_Str__Docker__Container_Name  = None
+    image_name       : Safe_Str__Docker__Image_Name      = "mitmproxy/mitmproxy"
+    build_image_name : Safe_Str__Docker__Image_Name      = None
+    image_tag        : Safe_Str__Docker__Tag             = "latest"
+    proxy_port       : Safe_UInt__Port                   = 8080
+    web_port         : Safe_UInt__Port                   = 8081
+    certificates_path: str                               = None             # Path to certificates tar.gz or directory
 
     # def __enter__(self):
     #     self.setup()
@@ -38,7 +39,7 @@ class Mitmproxy__Create__Docker_Container(Type_Safe):                    # Creat
             self.build_image_name = f"mitmproxy-custom-{random_string_short()}"
 
 
-    def build_custom_image(self):                                        # Build custom mitmproxy image with add_header.py
+    def build_custom_image(self, include_certificates=False):
         # Create temp directory for Docker build context
         build_context = temp_folder()
 
@@ -48,62 +49,116 @@ class Mitmproxy__Create__Docker_Container(Type_Safe):                    # Creat
         if not file_exists(add_header_path):
             return False
 
-        # Create Dockerfile
-        dockerfile_content = """FROM mitmproxy/mitmproxy:latest
+        # Copy add_header.py to build context
+        import shutil
+        shutil.copy(add_header_path, path_combine(build_context, 'add_header.py'))
 
+        # Handle certificates if requested
+        cert_commands = ""
+        if include_certificates and self.certificates_path:
+            if file_exists(self.certificates_path):
+                # Copy certificates to build context
+                if self.certificates_path.endswith('.tar.gz'):
+                    shutil.copy(self.certificates_path, path_combine(build_context, 'mitmproxy-certs-backup.tar.gz'))
+                    cert_commands = """\
+# Copy and extract certificates
+COPY mitmproxy-certs-backup.tar.gz /home/mitmproxy/
+RUN cd /home/mitmproxy && \    
+    mkdir ./certs && \
+    tar -xzf mitmproxy-certs-backup.tar.gz -C ./certs && \
+    ls -la .mitmproxy/ 
+"""
+                elif file_exists(path_combine(self.certificates_path, '.mitmproxy')):
+                    # Copy .mitmproxy directory
+                    shutil.copytree(
+                        path_combine(self.certificates_path, '.mitmproxy'),
+                        path_combine(build_context, '.mitmproxy')
+                    )
+
+        # Create Dockerfile - FIXED INDENTATION HERE
+        confdir_setting = '"--set", "confdir=/home/mitmproxy/certs/.mitmproxy", ' if include_certificates else ''
+        dockerfile_content = f"""\
+FROM mitmproxy/mitmproxy:latest
+    
 # Copy custom script
 COPY add_header.py /home/mitmproxy/add_header.py
-
+{cert_commands}
 # Set working directory
 WORKDIR /home/mitmproxy
 
 # Default command to run mitmproxy with the script
 ENTRYPOINT ["mitmdump"]
-CMD ["--listen-port", "8080", "--script", "/home/mitmproxy/add_header.py", "--set", "block_global=false"]
+CMD [{confdir_setting}"--listen-port", "8080", "--script", "/home/mitmproxy/add_header.py", "--set", "block_global=false"]
 """
 
         # Write Dockerfile
         dockerfile_path = path_combine(build_context, 'Dockerfile')
         file_create(dockerfile_path, dockerfile_content)
 
-        # Copy add_header.py to build context
-        import shutil
-        shutil.copy(add_header_path, path_combine(build_context, 'add_header.py'))
-
         # Build the image
-
-        custom_image      = Docker_Image(image_name = self.build_image_name ,
-                                         image_tag  = 'latest'              ,
-                                         api_docker = self.api_docker       )
+        custom_image = Docker_Image(image_name = self.build_image_name,
+                                  image_tag  = 'latest',
+                                  api_docker = self.api_docker)
 
         result = custom_image.build(path=build_context)
 
+        # Cleanup temp directory
+        shutil.rmtree(build_context)
+
         if result.get('status') == 'ok':
-            self.image_name = self.build_image_name                          # Use custom image
+            self.image_name = self.build_image_name
             return True
+        from osbot_utils.utils.Dev import pprint
+        pprint(result)
         return False
 
-    def create_container(self, with_custom_script=True):                 # Create mitmproxy container
-        if with_custom_script:
-            # Build custom image with add_header.py
-            if not self.build_custom_image():
+    def create_container(self, with_custom_script=True, with_certificates=False):                 # Create mitmproxy container
+        # Set default certificates path if not specified
+        if with_certificates and not self.certificates_path:
+            default_cert_path = path_combine(mgraph_ai_service_mitmproxy.path, '../_ec2_files/mitmproxy-certs-backup.tar.gz')
+            if file_exists(default_cert_path):
+                self.certificates_path = default_cert_path
+
+        if with_custom_script or with_certificates:
+            # Build custom image with add_header.py and optionally certificates
+            if not self.build_custom_image(include_certificates=with_certificates):
                 print("Warning: Failed to build custom image, using default")
+                raise Exception("Failed to build custom image")
 
         # Prepare port bindings
         port_bindings = { 8080 : self.proxy_port,                        # Proxy port
                           8081 : self.web_port  }                        # Web interface port
 
-        # Prepare volumes if using default image
+        # Prepare volumes if using default image or need to mount certificates
         volumes = None
         command = None
 
         if not with_custom_script or self.image_name == "mitmproxy/mitmproxy":
-            # If using default image, mount add_header.py as volume
-            add_header_path = path_combine(mgraph_ai_service_mitmproxy.path,
-                                         '../_ec2_files/add_header.py')
+            volumes = {}
+            command_parts = ['mitmdump', '--listen-port', '8080', '--set', 'block_global=false']
+
+            # Mount add_header.py if available
+            add_header_path = path_combine(mgraph_ai_service_mitmproxy.path, '../_ec2_files/add_header.py')
             if file_exists(add_header_path):
-                volumes = {add_header_path: {'bind': '/home/mitmproxy/add_header.py', 'mode': 'ro'}}
-                command = 'mitmdump --listen-port 8080 --script /home/mitmproxy/add_header.py --set block_global=false'
+                volumes[add_header_path] = {'bind': '/home/mitmproxy/add_header.py', 'mode': 'ro'}
+                command_parts.extend(['--script', '/home/mitmproxy/add_header.py'])
+
+            # Mount certificates if requested and not in image
+            if with_certificates and self.certificates_path:
+                # Extract certificates first if tar.gz
+                if self.certificates_path.endswith('.tar.gz'):
+                    import tarfile
+                    extract_path = path_combine(mgraph_ai_service_mitmproxy.path, '../_ec2_files/')
+                    with tarfile.open(self.certificates_path, 'r:gz') as tar:
+                        tar.extractall(path=extract_path)
+
+                # Mount .mitmproxy directory
+                mitmproxy_dir = path_combine(mgraph_ai_service_mitmproxy.path, '../_ec2_files/.mitmproxy')
+                if file_exists(mitmproxy_dir):
+                    volumes[mitmproxy_dir] = {'bind': '/home/mitmproxy/.mitmproxy', 'mode': 'ro'}
+                    command_parts.extend(['--set', 'confdir=/home/mitmproxy/.mitmproxy'])
+
+            command = ' '.join(command_parts) if command_parts else None
 
         # Create labels for identification
         labels = { 'service'    : 'mitmproxy'  ,
