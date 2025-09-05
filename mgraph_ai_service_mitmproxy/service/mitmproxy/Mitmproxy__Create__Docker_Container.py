@@ -16,6 +16,7 @@ class Mitmproxy__Create__Docker_Container(Type_Safe):                    # Creat
     container       : Docker_Container                  = None
     container_name  : Safe_Str__Docker__Container_Name  = None
     image_name      : Safe_Str__Docker__Image_Name      = "mitmproxy/mitmproxy"
+    build_image_name: Safe_Str__Docker__Image_Name      = None
     image_tag       : Safe_Str__Docker__Tag             = "latest"
     proxy_port      : Safe_UInt__Port                   = 8080
     web_port        : Safe_UInt__Port                   = 8081
@@ -30,9 +31,12 @@ class Mitmproxy__Create__Docker_Container(Type_Safe):                    # Creat
     #     return False
 
     def __init__(self, **kwargs):                                                     # Initialize Docker API and container name
+        super().__init__(**kwargs)
         if not self.container_name:
             self.container_name = f"mitmproxy-{random_string_short()}"
-        super().__init__(**kwargs)
+        if not self.build_image_name:
+            self.build_image_name = f"mitmproxy-custom-{random_string_short()}"
+
 
     def build_custom_image(self):                                        # Build custom mitmproxy image with add_header.py
         # Create temp directory for Docker build context
@@ -67,15 +71,15 @@ CMD ["--listen-port", "8080", "--script", "/home/mitmproxy/add_header.py", "--se
         shutil.copy(add_header_path, path_combine(build_context, 'add_header.py'))
 
         # Build the image
-        custom_image_name = f"mitmproxy-custom-{random_string_short()}"
-        custom_image      = Docker_Image(image_name = custom_image_name,
-                                        image_tag  = 'latest'       ,
-                                        api_docker = self.api_docker)
+
+        custom_image      = Docker_Image(image_name = self.build_image_name ,
+                                         image_tag  = 'latest'              ,
+                                         api_docker = self.api_docker       )
 
         result = custom_image.build(path=build_context)
 
         if result.get('status') == 'ok':
-            self.image_name = custom_image_name                          # Use custom image
+            self.image_name = self.build_image_name                          # Use custom image
             return True
         return False
 
@@ -108,18 +112,19 @@ CMD ["--listen-port", "8080", "--script", "/home/mitmproxy/add_header.py", "--se
 
         # Create the container
         docker_image = Docker_Image(image_name = self.image_name,
-                                  image_tag   = self.image_tag  ,
-                                  api_docker  = self.api_docker )
+                                   image_tag   = self.image_tag  ,
+                                   api_docker  = self.api_docker )
 
         # Pull image if doesn't exist
         if not docker_image.exists():
             docker_image.pull()
 
-        self.container = docker_image.create_container(command       = command      ,
-                                                       volumes       = volumes      ,
-                                                       port_bindings = port_bindings,
-                                                       labels        = labels       ,
-                                                       tty           = True         )
+        self.container = docker_image.create_container(command       = command              ,
+                                                       name          = self.container_name  ,
+                                                       volumes       = volumes              ,
+                                                       port_bindings = port_bindings        ,
+                                                       labels        = labels               ,
+                                                       tty           = True                 )
 
         return self.container
 
