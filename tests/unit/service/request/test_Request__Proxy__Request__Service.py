@@ -1,4 +1,5 @@
 from unittest                                                               import TestCase
+from osbot_utils.type_safe.type_safe_core.collections.Type_Safe__Dict       import Type_Safe__Dict
 from mgraph_ai_service_mitmproxy.schemas.debug.Schema__Debug__Params        import Schema__Debug__Params
 from mgraph_ai_service_mitmproxy.schemas.proxy.Schema__Request__Info        import Schema__Request__Info
 from mgraph_ai_service_mitmproxy.service.request.Proxy__Request__Service    import Proxy__Request__Service
@@ -110,7 +111,7 @@ class test_Request__Proxy__Request__Service(TestCase):
             query_string = 'show=response-data&other=value'
         )
 
-        assert type(debug_params) is dict
+        assert type(debug_params) is Type_Safe__Dict
         assert debug_params == {'show': 'response-data'}
         assert 'other' not in debug_params
 

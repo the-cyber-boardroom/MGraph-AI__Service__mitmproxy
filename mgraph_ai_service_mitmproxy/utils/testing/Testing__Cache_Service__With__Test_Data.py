@@ -1,23 +1,23 @@
-from typing                                                                             import List, Any
+from typing                                                                                         import List, Any
 # todo: refactor out this dependency of the mgraph_ai_service_cache, since this is the only one in this mgraph_ai_service_mitmproxy project
-from mgraph_ai_service_cache.fast_api.Cache_Service__Fast_API                           import Cache_Service__Fast_API
-from mgraph_ai_service_cache.service.cache.Cache__Config                                import Cache__Config
-from mgraph_ai_service_cache.service.cache.Cache__Service                               import Cache__Service
-from mgraph_ai_service_cache_client.client_contract.Service__Fast_API__Client           import Service__Fast_API__Client
-from mgraph_ai_service_cache_client.client_contract.Service__Fast_API__Client__Config   import Service__Fast_API__Client__Config
-from mgraph_ai_service_cache_client.schemas.cache.enums.Enum__Cache__Storage_Mode       import Enum__Cache__Storage_Mode
-from osbot_fast_api.utils.Fast_API_Server                                               import Fast_API_Server
-from osbot_fast_api_serverless.fast_api.Serverless__Fast_API__Config                    import Serverless__Fast_API__Config
-from osbot_utils.type_safe.Type_Safe                                                    import Type_Safe
-from osbot_utils.type_safe.primitives.domains.web.safe_str.Safe_Str__Url                import Safe_Str__Url
-from mgraph_ai_service_mitmproxy.service.cache.Proxy__Cache__Service                    import Proxy__Cache__Service
-from mgraph_ai_service_mitmproxy.service.cache.schemas.Schema__Cache__Config            import Schema__Cache__Config
-from mgraph_ai_service_mitmproxy.service.cache.schemas.Schema__Cache__Stats             import Schema__Cache__Stats
+from mgraph_ai_service_cache.fast_api.Cache_Service__Fast_API                                       import Cache_Service__Fast_API
+from mgraph_ai_service_cache.service.cache.Cache__Config                                            import Cache__Config
+from mgraph_ai_service_cache.service.cache.Cache__Service                                           import Cache__Service
+from mgraph_ai_service_cache_client.client.client_contract.Cache__Service__Fast_API__Client         import Cache__Service__Fast_API__Client
+from mgraph_ai_service_cache_client.client.client_contract.Cache__Service__Fast_API__Client__Config import Cache__Service__Fast_API__Client__Config
+from mgraph_ai_service_cache_client.schemas.cache.enums.Enum__Cache__Storage_Mode                   import Enum__Cache__Storage_Mode
+from osbot_fast_api.utils.Fast_API_Server                                                           import Fast_API_Server
+from osbot_fast_api_serverless.fast_api.Serverless__Fast_API__Config                                import Serverless__Fast_API__Config
+from osbot_utils.type_safe.Type_Safe                                                                import Type_Safe
+from osbot_utils.type_safe.primitives.domains.web.safe_str.Safe_Str__Url                            import Safe_Str__Url
+from mgraph_ai_service_mitmproxy.service.cache.Proxy__Cache__Service                                import Proxy__Cache__Service
+from mgraph_ai_service_mitmproxy.service.cache.schemas.Schema__Cache__Config                        import Schema__Cache__Config
+from mgraph_ai_service_mitmproxy.service.cache.schemas.Schema__Cache__Stats                         import Schema__Cache__Stats
 
 
 class Testing__Cache_Service__With__Test_Data(Type_Safe):                          # Shared cache service test infrastructure
     cache_service           : Any                                                  # Proxy__Cache__Service instance
-    cache_client            : Any                                                  # Service__Fast_API__Client instance
+    cache_client            : Any                                                  # Cache__Service__Fast_API__Client instance
     cache_service__fast_api : Any                                                  # Service__Fast_API instance
     fast_api_server         : Any                                                  # Fast_API_Server instance
     server_url              : Safe_Str__Url                                        # Server base URL
@@ -68,8 +68,9 @@ class Testing__Cache_Service__With__Test_Data(Type_Safe):                       
         self.server_url      = self.fast_api_server.url().rstrip("/")
 
     def setup__cache_client(self) -> None:                                        # Setup cache client with server URL
-        client_config   = Service__Fast_API__Client__Config(base_url=str(self.server_url))
-        self.cache_client = Service__Fast_API__Client(config=client_config)
+        client_config    = Cache__Service__Fast_API__Client__Config(base_url     = str(self.server_url),
+                                                                    fast_api_app = self.cache_service__fast_api.app())
+        self.cache_client = Cache__Service__Fast_API__Client(config=client_config)
 
     def setup__proxy_cache_service(self) -> None:                                 # Setup proxy cache service with configuration
         self.cache_config = Schema__Cache__Config(enabled   = True               ,

@@ -1,33 +1,34 @@
 import re
 import time
-from urllib.parse                                                                           import urlparse
-from typing                                                                                 import Optional, Dict
-from mgraph_ai_service_cache_client.client_contract.Service__Fast_API__Client__Config       import Service__Fast_API__Client__Config
-from mgraph_ai_service_cache_client.schemas.consts.consts__Cache_Client                     import ENV_VAR__AUTH__TARGET_SERVER__CACHE_SERVICE__KEY_VALUE
-from osbot_utils.helpers.cache.Cache__Hash__Generator                                       import Cache__Hash__Generator
-from osbot_utils.type_safe.Type_Safe                                                        import Type_Safe
-from osbot_utils.type_safe.primitives.domains.cryptography.safe_str.Safe_Str__Cache_Hash    import Safe_Str__Cache_Hash
-from osbot_utils.type_safe.primitives.domains.identifiers.Random_Guid                       import Random_Guid
-from osbot_utils.type_safe.primitives.domains.web.safe_str.Safe_Str__Url                    import Safe_Str__Url
-from osbot_utils.type_safe.type_safe_core.decorators.type_safe                              import type_safe
-from mgraph_ai_service_cache_client.client_contract.Service__Fast_API__Client               import Service__Fast_API__Client
-from mgraph_ai_service_cache_client.schemas.cache.enums.Enum__Cache__Store__Strategy        import Enum__Cache__Store__Strategy
-from osbot_utils.utils.Env                                                                  import get_env
-from mgraph_ai_service_mitmproxy.service.cache.schemas.Enum__Cache__Transformation_Type     import Enum__Cache__Transformation_Type
-from mgraph_ai_service_mitmproxy.service.cache.schemas.Schema__Cache__Config                import Schema__Cache__Config
-from mgraph_ai_service_mitmproxy.service.cache.schemas.Schema__Cache__Page__Entry           import Schema__Cache__Page__Entry
-from mgraph_ai_service_mitmproxy.service.cache.schemas.Schema__Cache__Page__Refs            import Schema__Cache__Page__Refs
-from mgraph_ai_service_mitmproxy.service.cache.schemas.Schema__Cache__Stats                 import Schema__Cache__Stats
-from mgraph_ai_service_mitmproxy.service.cache.schemas.safe_str.Safe_Str__Proxy__Cache_Key  import Safe_Str__Proxy__Cache_Key
-from mgraph_ai_service_mitmproxy.service.consts.consts__proxy                               import ENV_VAR__AUTH__TARGET_SERVER__CACHE_SERVICE__KEY_NAME, ENV_VAR__AUTH__TARGET_SERVER__CACHE_SERVICE__BASE_URL
+from urllib.parse                                                                                   import urlparse
+from typing                                                                                         import Optional, Dict
+from mgraph_ai_service_cache_client.client.client_contract.Cache__Service__Fast_API__Client         import Cache__Service__Fast_API__Client
+from mgraph_ai_service_cache_client.client.client_contract.Cache__Service__Fast_API__Client__Config import Cache__Service__Fast_API__Client__Config
+from mgraph_ai_service_cache_client.client.requests.schemas.enums.Enum__Client__Mode import Enum__Client__Mode
+from mgraph_ai_service_cache_client.schemas.consts.consts__Cache_Client                             import ENV_VAR__AUTH__TARGET_SERVER__CACHE_SERVICE__KEY_VALUE
+from osbot_utils.helpers.cache.Cache__Hash__Generator                                               import Cache__Hash__Generator
+from osbot_utils.type_safe.Type_Safe                                                                import Type_Safe
+from osbot_utils.type_safe.primitives.domains.cryptography.safe_str.Safe_Str__Cache_Hash            import Safe_Str__Cache_Hash
+from osbot_utils.type_safe.primitives.domains.identifiers.Random_Guid                               import Random_Guid
+from osbot_utils.type_safe.primitives.domains.web.safe_str.Safe_Str__Url                            import Safe_Str__Url
+from osbot_utils.type_safe.type_safe_core.decorators.type_safe                                      import type_safe
+from mgraph_ai_service_cache_client.schemas.cache.enums.Enum__Cache__Store__Strategy                import Enum__Cache__Store__Strategy
+from osbot_utils.utils.Env                                                                          import get_env
+from mgraph_ai_service_mitmproxy.service.cache.schemas.Enum__Cache__Transformation_Type             import Enum__Cache__Transformation_Type
+from mgraph_ai_service_mitmproxy.service.cache.schemas.Schema__Cache__Config                        import Schema__Cache__Config
+from mgraph_ai_service_mitmproxy.service.cache.schemas.Schema__Cache__Page__Entry                   import Schema__Cache__Page__Entry
+from mgraph_ai_service_mitmproxy.service.cache.schemas.Schema__Cache__Page__Refs                    import Schema__Cache__Page__Refs
+from mgraph_ai_service_mitmproxy.service.cache.schemas.Schema__Cache__Stats                         import Schema__Cache__Stats
+from mgraph_ai_service_mitmproxy.service.cache.schemas.safe_str.Safe_Str__Proxy__Cache_Key          import Safe_Str__Proxy__Cache_Key
+from mgraph_ai_service_mitmproxy.service.consts.consts__proxy                                       import ENV_VAR__AUTH__TARGET_SERVER__CACHE_SERVICE__KEY_NAME, ENV_VAR__AUTH__TARGET_SERVER__CACHE_SERVICE__BASE_URL
 
 DEFAULT__TEXT__CACHE_NOT_FOUND = ''                             # this used to be 'Not found' # todo see if we still need this DEFAULT__TEXT__CACHE_NOT_FOUND variable
 PAGE_ENTRY__JSON_FIELD_PATH    = 'cache_key'
 
-class Proxy__Cache__Service(Type_Safe):                         # Cache service for WCF transformations
-    cache_client      : Service__Fast_API__Client   = None      # Cache service client (Service__Fast_API__Client)
-    cache_config      : Schema__Cache__Config       = None      # Configuration
-    stats             : Schema__Cache__Stats                    # Cache statistics
+class Proxy__Cache__Service(Type_Safe):                                 # Cache service for WCF transformations
+    cache_client      : Cache__Service__Fast_API__Client   = None       # Cache service client (Cache__Service__Fast_API__Client)
+    cache_config      : Schema__Cache__Config              = None       # Configuration
+    stats             : Schema__Cache__Stats                            # Cache statistics
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -42,21 +43,23 @@ class Proxy__Cache__Service(Type_Safe):                         # Cache service 
         key_name  = get_env(ENV_VAR__AUTH__TARGET_SERVER__CACHE_SERVICE__KEY_NAME )
         key_value = get_env(ENV_VAR__AUTH__TARGET_SERVER__CACHE_SERVICE__KEY_VALUE)
 
-        auth__kwargs = dict(base_url       = base_url   ,
-                            api_key        = key_value  ,
-                            api_key_header = key_name  )
+        auth__kwargs = dict(base_url       = base_url                 ,
+                            api_key        = key_value                ,
+                            api_key_header = key_name                 )
 
         if base_url and key_name and key_value:
             cache_auth_available = True
+            client_mode          = Enum__Client__Mode.REMOTE
         else:
             cache_auth_available = False
+            client_mode          = Enum__Client__Mode.IN_MEMORY
 
         #cache_enabled        = False # cache_auth_available     # For now disable the cache
         cache_enabled        = cache_auth_available     # For now disable the cache
-        cache_client__config = Service__Fast_API__Client__Config(**auth__kwargs)
+        cache_client__config = Cache__Service__Fast_API__Client__Config(**auth__kwargs, mode=client_mode)
 
         self.cache_config    = Schema__Cache__Config            (**auth__kwargs, enabled=cache_enabled)
-        self.cache_client    = Service__Fast_API__Client        (config=cache_client__config)
+        self.cache_client    = Cache__Service__Fast_API__Client (config=cache_client__config)
 
         return self
 
@@ -93,8 +96,11 @@ class Proxy__Cache__Service(Type_Safe):                         # Cache service 
                                                                          namespace  = self.cache_config.namespace)
 
         # todo: see if metadata is really the best place to get this page entry data
-        metadata = result.get('metadata')                                   # todo: this metadata should be a Type_Safe object
-        return metadata
+        if result:
+            metadata = result.metadata                                   # todo: this metadata should be a Type_Safe object
+            return metadata
+        else:
+            return None
 
     @type_safe
     def get_or_create_page_entry(self, target_url : Safe_Str__Url                           # Get existing page cache_id or create new page entry
@@ -109,7 +115,7 @@ class Proxy__Cache__Service(Type_Safe):                         # Cache service 
         page_entry = self.get_page_entry__via__cache_hash(cache_hash = cache_hash)
 
         if page_entry:          # means the cache_hash was found
-            page_refs.cache_id   = page_entry.get('cache_id')
+            page_refs.cache_id   = page_entry.cache_id
             page_refs.cache_hash = cache_hash
             return page_refs
 
@@ -128,10 +134,11 @@ class Proxy__Cache__Service(Type_Safe):                         # Cache service 
                             json_field_path  = json_field_path                       )
 
         result               = self.cache_client.store().store__json__cache_key(**store_kwargs)
-        if result.get('status') == 'error':
-            raise Exception(f"Error in get_or_create_page_entry:  {result.get('message')}")     # todo: find a better way and location to catch these errors (which usually happen when the API key is not set)
-        page_refs.cache_id   = result.get("cache_id")
-        page_refs.cache_hash = result.get("cache_hash")
+        if result is None:
+
+            raise Exception(f"Error in get_or_create_page_entry")     # todo: find a better way and location to catch these errors (which usually happen when the API key is not set)
+        page_refs.cache_id   = result.cache_id
+        page_refs.cache_hash = result.cache_hash
 
         if self.cache_config.track_stats:                                       # Update stats (only if this is a new page)
             self.stats.total_pages_cached += 1

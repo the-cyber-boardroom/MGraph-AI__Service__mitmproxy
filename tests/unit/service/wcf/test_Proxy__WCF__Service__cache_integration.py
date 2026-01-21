@@ -2,8 +2,8 @@ import pytest
 from unittest                                                                           import TestCase
 from mgraph_ai_service_cache.service.cache.Cache__Config                                import Cache__Config
 from mgraph_ai_service_cache.service.cache.Cache__Service                               import Cache__Service
-from mgraph_ai_service_cache_client.client_contract.Service__Fast_API__Client           import Service__Fast_API__Client
-from mgraph_ai_service_cache_client.client_contract.Service__Fast_API__Client__Config   import Service__Fast_API__Client__Config
+from mgraph_ai_service_cache_client.client.client_contract.Cache__Service__Fast_API__Client           import Cache__Service__Fast_API__Client
+from mgraph_ai_service_cache_client.client.client_contract.Cache__Service__Fast_API__Client__Config   import Cache__Service__Fast_API__Client__Config
 from mgraph_ai_service_cache.fast_api.Cache_Service__Fast_API                           import Cache_Service__Fast_API
 from mgraph_ai_service_cache_client.schemas.cache.enums.Enum__Cache__Storage_Mode       import Enum__Cache__Storage_Mode
 from osbot_fast_api.utils.Fast_API_Server                                               import Fast_API_Server
@@ -36,14 +36,15 @@ class test_Proxy__WCF__Service__cache_integration(TestCase):
                                                                   cache_service = Cache__Service(cache_config=cache_config))
             cls.fast_api_server         = Fast_API_Server(app=cls.cache_service__fast_api.app())
             cls.server_url              = cls.fast_api_server.url().rstrip("/")
-            cls.server_config           = Service__Fast_API__Client__Config(base_url   = cls.server_url,
-                                                                            verify_ssl = False         )
-            cls.fast_api_client         = Service__Fast_API__Client(config=cls.server_config)
+            cls.server_config           = Cache__Service__Fast_API__Client__Config(base_url     = cls.server_url,
+                                                                                   fast_api_app = cls.cache_service__fast_api.app())
+            cls.fast_api_client         = Cache__Service__Fast_API__Client(config=cls.server_config)
             cls.cache_service__fast_api.setup()
             cls.fast_api_server.start()
 
-            cls.client_config = Service__Fast_API__Client__Config(base_url=cls.server_url)
-            cls.cache_client  = Service__Fast_API__Client(config=cls.client_config)
+            cls.client_config = Cache__Service__Fast_API__Client__Config(base_url=cls.server_url,
+                                                                         fast_api_app = cls.cache_service__fast_api.app())
+            cls.cache_client  = Cache__Service__Fast_API__Client(config=cls.client_config)
             cls.cache_config  = Schema__Cache__Config(enabled  = True                ,
                                                       base_url = cls.server_url      ,
                                                       namespace = "proxy-cache-tests",
@@ -286,8 +287,7 @@ class test_Proxy__WCF__Service__cache_integration(TestCase):
                                                                                         namespace    = self.cache_config.namespace,
                                                                                         data_key     = metadata_key     ,
                                                                                         data_file_id = "latest"         )
-
-        assert metadata.get('detail').get('error_type') == "NOT_FOUND"                     # BUG: metadata not found
+        assert metadata is None                                                          # BUG: metadata not found
 
         # assert 'status_code' in metadata                                                 # Verify metadata fields
         # assert 'content_type' in metadata
@@ -306,7 +306,7 @@ class test_Proxy__WCF__Service__cache_integration(TestCase):
         # assert metadata['wcf_response_time_ms'] > 0
         # assert metadata['wcf_response_time_ms'] < 30000
 
-    def test__cache_integration__response_time_tracked(self):                           # Test that WCF response time is tracked
+    def test__bug__cache_integration__response_time_tracked(self):                           # Test that WCF response time is tracked
         #test_url = "https://example.com/timing-test"
         test_url = "https://docs.diniscruz.ai/about.html"
 
@@ -320,7 +320,7 @@ class test_Proxy__WCF__Service__cache_integration(TestCase):
                                                                                     data_key     = "transformations/html/metadata",
                                                                                     data_file_id = "latest")
 
-        assert metadata.get('detail').get('error_type') == "NOT_FOUND"                     # BUG: metadata not found
+        assert metadata is None                                                          # BUG: metadata not found
 
         # response_time = metadata['wcf_response_time_ms']                                # Verify response time is reasonable
         # assert response_time > 0

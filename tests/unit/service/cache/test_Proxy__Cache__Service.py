@@ -1,25 +1,25 @@
-from unittest                                                                           import TestCase
-from memory_fs.storage_fs.providers.Storage_FS__Memory                                  import Storage_FS__Memory
-from mgraph_ai_service_cache.fast_api.Cache_Service__Fast_API                           import Cache_Service__Fast_API
-from mgraph_ai_service_cache.service.cache.Cache__Config                                import Cache__Config
-from mgraph_ai_service_cache.service.cache.Cache__Service                               import Cache__Service
-from mgraph_ai_service_cache_client.client_contract.Service__Fast_API__Client           import Service__Fast_API__Client
-from mgraph_ai_service_cache_client.client_contract.Service__Fast_API__Client__Config   import Service__Fast_API__Client__Config
-from mgraph_ai_service_cache_client.schemas.cache.enums.Enum__Cache__Storage_Mode       import Enum__Cache__Storage_Mode
-from osbot_fast_api.utils.Fast_API_Server                                               import Fast_API_Server
-from osbot_fast_api_serverless.fast_api.Serverless__Fast_API__Config                    import Serverless__Fast_API__Config
-from osbot_utils.helpers.cache.Cache__Hash__Generator import Cache__Hash__Generator
-from osbot_utils.helpers.duration.decorators.capture_duration                           import capture_duration
-from osbot_utils.testing.__                                                             import __, __SKIP__
-from osbot_utils.type_safe.primitives.core.Safe_UInt                                    import Safe_UInt
-from osbot_utils.utils.Http                                                             import GET_json
-from osbot_utils.utils.Json                                                             import str_to_json
-from osbot_utils.utils.Misc                                                             import list_set, is_guid
-from osbot_utils.testing.__helpers                                                      import obj
-from mgraph_ai_service_mitmproxy.service.cache.Proxy__Cache__Service                    import Proxy__Cache__Service
-from mgraph_ai_service_mitmproxy.service.cache.schemas.Schema__Cache__Config            import Schema__Cache__Config
-from mgraph_ai_service_mitmproxy.service.cache.schemas.Schema__Cache__Page__Refs        import Schema__Cache__Page__Refs
-from mgraph_ai_service_mitmproxy.service.cache.schemas.Schema__Cache__Stats             import Schema__Cache__Stats
+from unittest                                                                                       import TestCase
+from memory_fs.storage_fs.providers.Storage_FS__Memory                                              import Storage_FS__Memory
+from mgraph_ai_service_cache.fast_api.Cache_Service__Fast_API                                       import Cache_Service__Fast_API
+from mgraph_ai_service_cache.service.cache.Cache__Config                                            import Cache__Config
+from mgraph_ai_service_cache.service.cache.Cache__Service                                           import Cache__Service
+from mgraph_ai_service_cache_client.client.client_contract.Cache__Service__Fast_API__Client         import Cache__Service__Fast_API__Client
+from mgraph_ai_service_cache_client.client.client_contract.Cache__Service__Fast_API__Client__Config import Cache__Service__Fast_API__Client__Config
+from mgraph_ai_service_cache_client.schemas.cache.enums.Enum__Cache__Storage_Mode                   import Enum__Cache__Storage_Mode
+from osbot_fast_api.utils.Fast_API_Server                                                           import Fast_API_Server
+from osbot_fast_api_serverless.fast_api.Serverless__Fast_API__Config                                import Serverless__Fast_API__Config
+from osbot_utils.helpers.cache.Cache__Hash__Generator                                               import Cache__Hash__Generator
+from osbot_utils.helpers.duration.decorators.capture_duration                                       import capture_duration
+from osbot_utils.testing.__                                                                         import __, __SKIP__
+from osbot_utils.type_safe.primitives.core.Safe_UInt                                                import Safe_UInt
+from osbot_utils.utils.Http                                                                         import GET_json
+from osbot_utils.utils.Json                                                                         import str_to_json
+from osbot_utils.utils.Misc                                                                         import list_set, is_guid
+from osbot_utils.testing.__helpers                                                                  import obj
+from mgraph_ai_service_mitmproxy.service.cache.Proxy__Cache__Service                                import Proxy__Cache__Service
+from mgraph_ai_service_mitmproxy.service.cache.schemas.Schema__Cache__Config                        import Schema__Cache__Config
+from mgraph_ai_service_mitmproxy.service.cache.schemas.Schema__Cache__Page__Refs                    import Schema__Cache__Page__Refs
+from mgraph_ai_service_mitmproxy.service.cache.schemas.Schema__Cache__Stats                         import Schema__Cache__Stats
 
 class test_Proxy__Cache__Service(TestCase):
 
@@ -36,14 +36,15 @@ class test_Proxy__Cache__Service(TestCase):
             cls.server_url              = cls.fast_api_server.url().rstrip("/")                              # note: the trailing / was causing issues with the auto-generated request code
             #cls.server_url              = "http://0.0.0.0:10017"                                            # note: to use a local server we need to also add the auth
 
-            cls.server_config           = Service__Fast_API__Client__Config(base_url=cls.server_url, verify_ssl=False)
-            cls.fast_api_client         = Service__Fast_API__Client        (config=cls.server_config)
+            cls.server_config           = Cache__Service__Fast_API__Client__Config(base_url=cls.server_url)
+            cls.fast_api_client         = Cache__Service__Fast_API__Client        (config=cls.server_config)
 
             cls.cache_service__fast_api.setup()
             cls.fast_api_server        .start()
 
-            cls.client_config = Service__Fast_API__Client__Config(base_url = cls.server_url   )
-            cls.cache_client  = Service__Fast_API__Client         (config   = cls.client_config)
+            cls.client_config = Cache__Service__Fast_API__Client__Config(base_url = cls.server_url   ,
+                                                                         fast_api_app = cls.cache_service__fast_api.app())
+            cls.cache_client  = Cache__Service__Fast_API__Client         (config   = cls.client_config)
             cls.cache_config  = Schema__Cache__Config             (enabled  = True                ,
                                                                    base_url  = cls.server_url     ,
                                                                    namespace = "proxy-cache-tests",
@@ -230,7 +231,8 @@ class test_Proxy__Cache__Service(TestCase):
 
             assert html == html_content
             assert text == text_content
-            assert ratings == str_to_json(ratings_content)
+            assert ratings == ratings_content
+            #assert ratings == str_to_json(ratings_content)
 
     def test__wcf_command_to_data_key(self):                   # Test WCF command to data_key conversion
         with self.cache_service as _:
@@ -340,7 +342,7 @@ class test_Proxy__Cache__Service(TestCase):
 
         result = self.cache_service.cache_client.retrieve().retrieve__hash__cache_hash(namespace=self.cache_service.cache_config.namespace, # Verify we can retrieve the page entry
                                                                                        cache_hash=cache_hash)
-        assert obj(result) == __(data       = __(url              = 'https://example.com'            ,
+        assert result.obj() == __(data       = __(url              = 'https://example.com'            ,
                                                  cache_key        = 'sites/example.com/pages/index'  ,
                                                  domain           = 'example.com'                    ,
                                                  path             = ''                               ,
@@ -349,7 +351,7 @@ class test_Proxy__Cache__Service(TestCase):
                                                  access_count     = 1                                ),
                                  metadata   = __(cache_id         = __SKIP__                         ,
                                                  cache_hash       = __SKIP__                         ,
-                                                 cache_key        = 'sites_example.com_pages_index'  ,          # todo: BUG this cache key should match the data.cache_key
+                                                 cache_key        = 'sites/example.com/pages/index'  ,
                                                  file_id          = 'page-entry'                     ,
                                                  namespace        = 'proxy-cache-tests'              ,
                                                  strategy         = 'key_based'                      ,
