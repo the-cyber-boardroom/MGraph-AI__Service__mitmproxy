@@ -103,7 +103,7 @@ class Enum__HTML__Transformation_Mode(str, Enum):
 
 
     def uses_sentiment_analysis(self) -> bool:                          # Check if mode requires AWS Comprehend sentiment analysis
-        return False
+        #return False
         sentiment_modes = {
             Enum__HTML__Transformation_Mode.XXX_NEGATIVE  ,
             Enum__HTML__Transformation_Mode.XXX_NEGATIVE_05,
@@ -112,13 +112,13 @@ class Enum__HTML__Transformation_Mode(str, Enum):
             Enum__HTML__Transformation_Mode.XXX_NEGATIVE_3,
             Enum__HTML__Transformation_Mode.XXX_NEGATIVE_4,
 
-            Enum__HTML__Transformation_Mode.XXX_HIDE_POSITIVE,
-            Enum__HTML__Transformation_Mode.XXX_HIDE_NEGATIVE,
-            Enum__HTML__Transformation_Mode.XXX_HIDE_NEUTRAL ,
-            Enum__HTML__Transformation_Mode.XXX_HIDE_MIXED   ,
+            # Enum__HTML__Transformation_Mode.XXX_HIDE_POSITIVE,
+            # Enum__HTML__Transformation_Mode.XXX_HIDE_NEGATIVE,
+            # Enum__HTML__Transformation_Mode.XXX_HIDE_NEUTRAL ,
+            # Enum__HTML__Transformation_Mode.XXX_HIDE_MIXED   ,
 
-            Enum__HTML__Transformation_Mode.HASHES_POSITIVE,
-            Enum__HTML__Transformation_Mode.HASHES_NEGATIVE,
+            # Enum__HTML__Transformation_Mode.HASHES_POSITIVE,
+            # Enum__HTML__Transformation_Mode.HASHES_NEGATIVE,
             #Enum__HTML__Transformation_Mode.XXX_EXTREME,
             #Enum__HTML__Transformation_Mode.XXX_OPINIONATED,
         }
@@ -126,18 +126,18 @@ class Enum__HTML__Transformation_Mode(str, Enum):
 
     # improve this since we need to take into account that positive(ish) will also have good neutral and mixed
     def get_sentiment_filters(self) -> List[Dict]:      # Get sentiment filters for this mode
-        return []
-        # filters_map = { Enum__HTML__Transformation_Mode.XXX_NEGATIVE        : [{"criterion": "negative", "filter_mode": "above", "threshold": 0.3}],
-        #                 Enum__HTML__Transformation_Mode.XXX_NEGATIVE_05     : [{"criterion": "negative", "filter_mode": "above", "threshold": 0.05}],
-        #                 Enum__HTML__Transformation_Mode.XXX_NEGATIVE_1      : [{"criterion": "negative", "filter_mode": "above", "threshold": 0.1}],
-        #                 Enum__HTML__Transformation_Mode.XXX_NEGATIVE_2      : [{"criterion": "negative", "filter_mode": "above", "threshold": 0.2}],
-        #                 Enum__HTML__Transformation_Mode.XXX_NEGATIVE_3      : [{"criterion": "negative", "filter_mode": "above", "threshold": 0.3}],
-        #                 Enum__HTML__Transformation_Mode.XXX_NEGATIVE_4      : [{"criterion": "negative", "filter_mode": "above", "threshold": 0.4}],
-        #                 Enum__HTML__Transformation_Mode.XXX_HIDE_POSITIVE   : [{"criterion": "positive", "filter_mode": "above", "threshold": 0.7} ],
-        #                 Enum__HTML__Transformation_Mode.XXX_HIDE_NEGATIVE   : [{"criterion": "negative", "filter_mode": "above", "threshold": 0.7} ],
-        #                 Enum__HTML__Transformation_Mode.XXX_HIDE_NEUTRAL    : [{"criterion": "neutral" , "filter_mode": "above", "threshold": 0.6} ],
-        #                 Enum__HTML__Transformation_Mode.XXX_HIDE_MIXED      : [{"criterion": "mixed"   , "filter_mode": "above", "threshold": 0.8}]}
-        #return filters_map.get(self, [])
+        #return []
+        filters_map = { Enum__HTML__Transformation_Mode.XXX_NEGATIVE        : [{"criterion": "negative", "filter_mode": "above", "threshold": 0.3}],
+                        Enum__HTML__Transformation_Mode.XXX_NEGATIVE_05     : [{"criterion": "negative", "filter_mode": "above", "threshold": 0.05}],
+                        Enum__HTML__Transformation_Mode.XXX_NEGATIVE_1      : [{"criterion": "negative", "filter_mode": "above", "threshold": 0.1}],
+                        Enum__HTML__Transformation_Mode.XXX_NEGATIVE_2      : [{"criterion": "negative", "filter_mode": "above", "threshold": 0.2}],
+                        Enum__HTML__Transformation_Mode.XXX_NEGATIVE_3      : [{"criterion": "negative", "filter_mode": "above", "threshold": 0.3}],
+                        Enum__HTML__Transformation_Mode.XXX_NEGATIVE_4      : [{"criterion": "negative", "filter_mode": "above", "threshold": 0.4}]}
+                        # Enum__HTML__Transformation_Mode.XXX_HIDE_POSITIVE   : [{"criterion": "positive", "filter_mode": "above", "threshold": 0.7} ],
+                        # Enum__HTML__Transformation_Mode.XXX_HIDE_NEGATIVE   : [{"criterion": "negative", "filter_mode": "above", "threshold": 0.7} ],
+                        # Enum__HTML__Transformation_Mode.XXX_HIDE_NEUTRAL    : [{"criterion": "neutral" , "filter_mode": "above", "threshold": 0.6} ],
+                        # Enum__HTML__Transformation_Mode.XXX_HIDE_MIXED      : [{"criterion": "mixed"   , "filter_mode": "above", "threshold": 0.8}]}
+        return filters_map.get(self, [])
 
     def get_logic_operator(self) -> str:        # Get logic operator for combining filters
         return "or"                             # for now default to "or"
