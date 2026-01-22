@@ -1,6 +1,8 @@
 import uuid
 from typing                                                                          import Dict
 from osbot_utils.type_safe.Type_Safe                                                 import Type_Safe
+
+from mgraph_ai_service_mitmproxy.schemas.html import Enum__HTML__Transformation_Mode
 from mgraph_ai_service_mitmproxy.schemas.proxy.Schema__Proxy__Response_Data          import Schema__Proxy__Response_Data
 from mgraph_ai_service_mitmproxy.schemas.proxy.Schema__Proxy__Modifications          import Schema__Proxy__Modifications
 from mgraph_ai_service_mitmproxy.schemas.proxy.Schema__Response__Processing_Result   import Schema__Response__Processing_Result
@@ -58,7 +60,10 @@ class Proxy__Response__Service(Type_Safe):                       # Main response
             if modifications.modified_body:                                                         # Check if content was modified (but not overridden)
                 self.stats_service.increment_content_modification()
 
-            self.handle_html_graph_store(response_data.json())              # todo: we should be using Schema__Proxy__Response_Data here
+            # handle HTML-Graph and it's cache
+            graph_response = self.handle_html_graph_store(response_data.json())              # todo: we should be using Schema__Proxy__Response_Data here
+            if graph_response:
+                return graph_response
 
             # Process HTML transformation based on mitm-mode cookie
             transformed_html, transformation_headers = self.process_html_transformation(response_data   = response_data    ,
@@ -176,7 +181,10 @@ class Proxy__Response__Service(Type_Safe):                       # Main response
                                 ) -> tuple:                                                 # (transformed_html, headers_to_add)
         transformation_mode = self.cookie_service.get_mitm_mode(request_headers)        # Extract transformation mode from cookie
 
+
         if not transformation_mode.is_active():                                          # No transformation needed
+            return (None, {})
+        if transformation_mode == Enum__HTML__Transformation_Mode.CACHE:
             return (None, {})
 
         response_body = response_data.response.get("body", "")                           # Extract HTML from response
@@ -246,13 +254,18 @@ class Proxy__Response__Service(Type_Safe):                       # Main response
         if self.html_graph_handler is None:
             return {}
 
+        headers = response_data.get('request', {}).get("headers", {})
+        mitm_mode = self.cookie_service.get_mitm_mode(headers)
+
         cookies = self.extract_cookies_from_request(response_data)
 
-        if self.html_graph_handler.is_cache_mode(cookies) is False:
-            return {}                                                           # Not in cache mode
-
-        store_headers = self.html_graph_handler.store_html(response_data)
-        return store_headers
+        # if self.html_graph_handler.is_cache_mode(cookies) is False:
+        #     return {}                                                           # Not in cache mode
+        if mitm_mode == Enum__HTML__Transformation_Mode.CACHE:
+            store_headers = self.html_graph_handler.store_html(response_data)
+            return store_headers
+        else:
+            return {}
 
 
     def process_cache_mode_response(self, response_data: dict                   # Handle full response for cache mode

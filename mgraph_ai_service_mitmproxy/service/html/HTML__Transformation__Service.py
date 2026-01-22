@@ -167,7 +167,7 @@ class HTML__Transformation__Service(Type_Safe):                                 
 
         if not self.cache_service or not self.cache_service.cache_config.enabled:
             return None
-        print(f">>>>>> cache enabled: {self.cache_service.cache_config.enabled}")
+
         if not mode.requires_caching():
             return None
 

@@ -1,5 +1,7 @@
 from typing                                                                     import Dict
 from osbot_utils.type_safe.Type_Safe                                            import Type_Safe
+
+from mgraph_ai_service_mitmproxy.schemas.html import Enum__HTML__Transformation_Mode
 from mgraph_ai_service_mitmproxy.schemas.proxy.Schema__Proxy__Request_Data      import Schema__Proxy__Request_Data
 from mgraph_ai_service_mitmproxy.schemas.proxy.Schema__Proxy__Modifications     import Schema__Proxy__Modifications
 from mgraph_ai_service_mitmproxy.service.html_graph.HTML_Graph__Cache__Handler  import HTML_Graph__Cache__Handler
@@ -37,6 +39,7 @@ class Proxy__Request__Service(Type_Safe):                            # Request p
         self.stats_service.increment_request(host = request_data.host,
                                              path = request_data.path)
 
+        # check html-proxy and it's cache
         cached_response = self.check_html_graph_cache(request_data.json()) # todo use Schema__Proxy__Request_Data
         if cached_response is not None:
             return cached_response                                             # Short-circuit: return cached HTML
@@ -110,10 +113,14 @@ class Proxy__Request__Service(Type_Safe):                            # Request p
             return None
 
         headers = request_data.get("headers", {})
-        cookies = self.extract_cookies_from_headers(headers)
+        mitm_mode = self.cookie_service.get_mitm_mode(headers)
 
-        if self.html_graph_handler.is_cache_mode(cookies) is False:
-            return None                                                         # Not in cache mode
+        #cookies = self.extract_cookies_from_headers(headers)
 
-        cached_response = self.html_graph_handler.check_cache(request_data)
-        return cached_response                                                  # dict if HIT, None if MISS
+        # if self.html_graph_handler.is_cache_mode(cookies) is False:
+        #     return None                                                         # Not in cache mode
+        if mitm_mode == Enum__HTML__Transformation_Mode.CACHE:
+            cached_response = self.html_graph_handler.check_cache(request_data)
+            return cached_response                                                  # dict if HIT, None if MISS
+        else:
+            return None
