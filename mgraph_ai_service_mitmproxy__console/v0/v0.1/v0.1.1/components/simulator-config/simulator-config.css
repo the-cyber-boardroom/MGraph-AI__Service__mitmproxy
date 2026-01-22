@@ -1,0 +1,178 @@
+/* ═══════════════════════════════════════════════════════════════════════════════
+   MitmProxy Simulator - Configuration Panel Styles
+   v0.1.0 - Component-specific styles
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.simulator-config-container {
+    background: var(--bg-secondary, #161b22);
+    border: 1px solid var(--border-default, #30363d);
+    border-radius: var(--radius-lg, 8px);
+    overflow: hidden;
+}
+
+/* Header */
+.config-header {
+    padding: var(--spacing-sm, 8px) var(--spacing-md, 16px);
+    background: var(--bg-tertiary, #21262d);
+    border-bottom: 1px solid var(--border-default, #30363d);
+}
+
+.config-title {
+    font-size: var(--font-size-base, 14px);
+    font-weight: 600;
+    color: var(--text-primary, #e6edf3);
+    margin: 0;
+}
+
+/* Body */
+.config-body {
+    padding: var(--spacing-md, 16px);
+}
+
+/* Rows */
+.config-row {
+    margin-bottom: var(--spacing-md, 16px);
+}
+
+.config-row:last-child {
+    margin-bottom: 0;
+}
+
+/* URL Group */
+.url-group {
+    margin-bottom: 0;
+}
+
+.url-group .form-control {
+    font-family: var(--font-code, monospace);
+    font-size: var(--font-size-small, 12px);
+}
+
+.url-hint {
+    display: block;
+    margin-top: var(--spacing-xs, 4px);
+    font-size: var(--font-size-small, 12px);
+    color: var(--text-muted, #6e7681);
+}
+
+.url-hint.error {
+    color: var(--accent-error, #f85149);
+}
+
+.url-hint.success {
+    color: var(--accent-success, #3fb950);
+}
+
+/* Selects Row */
+.config-selects {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md, 16px);
+}
+
+@media (max-width: 600px) {
+    .config-selects {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Form Group Override */
+.config-body .form-group {
+    margin-bottom: 0;
+}
+
+/* Select styling */
+.config-body select.form-control {
+    font-size: var(--font-size-small, 12px);
+}
+
+.config-body select.form-control option {
+    padding: var(--spacing-xs, 4px);
+}
+
+.config-body select.form-control optgroup {
+    font-weight: 600;
+    color: var(--text-secondary, #8b949e);
+}
+
+/* Actions Row */
+.config-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md, 16px);
+    padding-top: var(--spacing-sm, 8px);
+    border-top: 1px solid var(--border-muted, #21262d);
+}
+
+/* Execute Button */
+#execute-btn {
+    flex: 1;
+    max-width: 300px;
+}
+
+#execute-btn .btn-icon {
+    font-size: 1rem;
+}
+
+#execute-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+#execute-btn.loading .btn-text {
+    display: none;
+}
+
+#execute-btn.loading::after {
+    content: 'Executing...';
+}
+
+/* Reset Button */
+#reset-btn {
+    color: var(--text-muted, #6e7681);
+}
+
+#reset-btn:hover {
+    color: var(--text-secondary, #8b949e);
+}
+
+/* Focus States */
+.config-body .form-control:focus {
+    border-color: var(--accent-primary, #58a6ff);
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.15);
+}
+
+/* Validation States */
+.config-body .form-control.invalid {
+    border-color: var(--accent-error, #f85149);
+}
+
+.config-body .form-control.invalid:focus {
+    box-shadow: 0 0 0 3px rgba(248, 81, 73, 0.15);
+}
+
+/* v0.1.1 additions */
+
+/* Options Row */
+.config-options {
+    margin-bottom: var(--spacing-sm, 8px);
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm, 8px);
+    cursor: pointer;
+    font-size: var(--font-size-small, 12px);
+    color: var(--text-secondary, #8b949e);
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    accent-color: var(--accent-primary, #58a6ff);
+}
+
+.checkbox-label:hover {
+    color: var(--text-primary, #e6edf3);
+}

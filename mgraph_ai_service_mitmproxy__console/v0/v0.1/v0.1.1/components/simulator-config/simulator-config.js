@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════════════════════
    MitmProxy Simulator - Configuration Panel Component
-   v0.1.0 - URL, mode, and sample selection with execute button
+   v0.1.1 - URL auto-sync with sample selection to prevent backend caching
    
    Events Emitted:
    - config-changed: { url, mode, sampleHtml }
@@ -12,11 +12,12 @@ class SimulatorConfig extends BaseComponent {
     constructor() {
         super();
         this.config = {
-            url: 'https://news.xyz-corp.test/articles/tech-trends-2026',
+            url: 'https://website-xyz.test/content/article-page',
             mode: 'cache',
             sampleHtml: 'article-page'
         };
         this.isExecuting = false;
+        this.autoSyncUrl = true;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -28,6 +29,7 @@ class SimulatorConfig extends BaseComponent {
         this.urlHint = this.$('#url-hint');
         this.modeSelect = this.$('#mode-select');
         this.sampleSelect = this.$('#sample-select');
+        this.autoSyncCheckbox = this.$('#auto-sync-url');
         this.executeBtn = this.$('#execute-btn');
         this.resetBtn = this.$('#reset-btn');
     }
@@ -44,6 +46,9 @@ class SimulatorConfig extends BaseComponent {
         
         // Sample select
         this.addTrackedListener(this.sampleSelect, 'change', () => this.handleSampleChange());
+        
+        // Auto-sync checkbox
+        this.addTrackedListener(this.autoSyncCheckbox, 'change', () => this.handleAutoSyncChange());
         
         // Execute button
         this.addTrackedListener(this.executeBtn, 'click', () => this.handleExecute());
@@ -62,6 +67,7 @@ class SimulatorConfig extends BaseComponent {
     onReady() {
         this.populateSampleOptions();
         this.syncFromInputs();
+        this.validateUrl();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -84,6 +90,7 @@ class SimulatorConfig extends BaseComponent {
         if (this.urlInput) this.config.url = this.urlInput.value;
         if (this.modeSelect) this.config.mode = this.modeSelect.value;
         if (this.sampleSelect) this.config.sampleHtml = this.sampleSelect.value;
+        if (this.autoSyncCheckbox) this.autoSyncUrl = this.autoSyncCheckbox.checked;
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -103,7 +110,22 @@ class SimulatorConfig extends BaseComponent {
 
     handleSampleChange() {
         this.config.sampleHtml = this.sampleSelect.value;
+        
+        // Auto-sync URL if enabled
+        if (this.autoSyncUrl) {
+            this.syncUrlToSample();
+        }
+        
         this.emitConfigChanged();
+    }
+
+    handleAutoSyncChange() {
+        this.autoSyncUrl = this.autoSyncCheckbox.checked;
+        
+        // If just enabled, sync now
+        if (this.autoSyncUrl) {
+            this.syncUrlToSample();
+        }
     }
 
     handleExecute() {
@@ -120,6 +142,24 @@ class SimulatorConfig extends BaseComponent {
 
     handleReset() {
         this.emit('reset-requested', {});
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // URL Sync
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Update URL to match selected sample (prevents backend caching issues)
+     */
+    syncUrlToSample() {
+        const baseUrl = 'https://website-xyz.test/content/';
+        const newUrl = baseUrl + this.config.sampleHtml;
+        
+        this.config.url = newUrl;
+        if (this.urlInput) {
+            this.urlInput.value = newUrl;
+        }
+        this.validateUrl();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -154,18 +194,10 @@ class SimulatorConfig extends BaseComponent {
     // Public API
     // ═══════════════════════════════════════════════════════════════════════════
 
-    /**
-     * Get current configuration
-     * @returns {object} { url, mode, sampleHtml }
-     */
     getConfig() {
         return { ...this.config };
     }
 
-    /**
-     * Set configuration
-     * @param {object} config - { url?, mode?, sampleHtml? }
-     */
     setConfig(config) {
         if (config.url !== undefined) {
             this.config.url = config.url;
@@ -182,10 +214,6 @@ class SimulatorConfig extends BaseComponent {
         this.validateUrl();
     }
 
-    /**
-     * Set executing state (disables button)
-     * @param {boolean} executing
-     */
     setExecuting(executing) {
         this.isExecuting = executing;
         if (this.executeBtn) {
@@ -194,15 +222,16 @@ class SimulatorConfig extends BaseComponent {
         }
     }
 
-    /**
-     * Reset to defaults
-     */
     resetToDefaults() {
         this.setConfig({
-            url: 'https://news.xyz-corp.test/articles/tech-trends-2026',
+            url: 'https://website-xyz.test/content/article-page',
             mode: 'cache',
             sampleHtml: 'article-page'
         });
+        if (this.autoSyncCheckbox) {
+            this.autoSyncCheckbox.checked = true;
+            this.autoSyncUrl = true;
+        }
         this.emitConfigChanged();
     }
 

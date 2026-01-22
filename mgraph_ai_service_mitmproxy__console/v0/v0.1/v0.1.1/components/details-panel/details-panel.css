@@ -1,0 +1,138 @@
+/* ═══════════════════════════════════════════════════════════════════════════════
+   MitmProxy Simulator - Details Panel Styles
+   v0.1.0 - Tabbed container for stage details
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.details-panel-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: var(--bg-secondary, #161b22);
+    border: 1px solid var(--border-default, #30363d);
+    border-radius: var(--radius-lg, 8px);
+    overflow: hidden;
+}
+
+/* Header with Tabs */
+.details-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-sm, 8px) var(--spacing-md, 16px);
+    background: var(--bg-tertiary, #21262d);
+    border-bottom: 1px solid var(--border-default, #30363d);
+    flex-shrink: 0;
+}
+
+.details-title {
+    font-size: var(--font-size-base, 14px);
+    font-weight: 600;
+    color: var(--text-primary, #e6edf3);
+    margin: 0;
+}
+
+/* Tabs */
+.details-tabs {
+    display: flex;
+    gap: var(--spacing-xs, 4px);
+}
+
+.details-tab-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs, 4px);
+    padding: var(--spacing-xs, 4px) var(--spacing-sm, 8px);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm, 4px);
+    color: var(--text-muted, #6e7681);
+    font-family: inherit;
+    font-size: var(--font-size-small, 12px);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.details-tab-btn:hover {
+    color: var(--text-secondary, #8b949e);
+    background: var(--bg-highlight, #30363d);
+}
+
+.details-tab-btn.active {
+    color: var(--text-primary, #e6edf3);
+    background: var(--bg-highlight, #30363d);
+}
+
+.details-tab-btn .tab-icon {
+    font-size: 0.9rem;
+}
+
+.details-tab-btn .tab-label {
+    display: inline;
+}
+
+/* Tab Status Indicators */
+.details-tab-btn[data-status="running"] {
+    color: var(--stage-running, #58a6ff);
+}
+
+.details-tab-btn[data-status="complete"],
+.details-tab-btn[data-status="hit"] {
+    color: var(--stage-complete, #3fb950);
+}
+
+.details-tab-btn[data-status="miss"] {
+    color: var(--stage-miss, #d29922);
+}
+
+.details-tab-btn[data-status="error"] {
+    color: var(--stage-error, #f85149);
+}
+
+/* Content Area */
+.details-content {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+}
+
+.details-tab-content {
+    display: none;
+    position: absolute;
+    inset: 0;
+}
+
+.details-tab-content.active {
+    display: block;
+}
+
+/* Nested stage-tab fills container */
+.details-tab-content stage-tab {
+    display: block;
+    height: 100%;
+}
+
+/* Responsive: Hide tab labels on small screens */
+@media (max-width: 600px) {
+    .details-header {
+        flex-direction: column;
+        gap: var(--spacing-sm, 8px);
+        align-items: flex-start;
+    }
+    
+    .details-tabs {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .details-tab-btn .tab-label {
+        display: none;
+    }
+    
+    .details-tab-btn {
+        padding: var(--spacing-sm, 8px);
+    }
+    
+    .details-tab-btn .tab-icon {
+        font-size: 1.1rem;
+    }
+}

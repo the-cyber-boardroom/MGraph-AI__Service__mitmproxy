@@ -1,0 +1,217 @@
+/* ═══════════════════════════════════════════════════════════════════════════════
+   MitmProxy Simulator - Pipeline Status Styles
+   v0.1.0 - Visual flow with stage boxes
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.pipeline-status-container {
+    background: var(--bg-secondary, #161b22);
+    border: 1px solid var(--border-default, #30363d);
+    border-radius: var(--radius-lg, 8px);
+    overflow: hidden;
+}
+
+/* Header */
+.pipeline-header {
+    padding: var(--spacing-sm, 8px) var(--spacing-md, 16px);
+    background: var(--bg-tertiary, #21262d);
+    border-bottom: 1px solid var(--border-default, #30363d);
+}
+
+.pipeline-title {
+    font-size: var(--font-size-base, 14px);
+    font-weight: 600;
+    color: var(--text-primary, #e6edf3);
+    margin: 0;
+}
+
+/* Flow Container */
+.pipeline-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-lg, 24px) var(--spacing-md, 16px);
+    gap: var(--spacing-xs, 4px);
+    overflow-x: auto;
+}
+
+/* Stage */
+.pipeline-stage {
+    flex-shrink: 0;
+}
+
+.stage-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--spacing-md, 16px);
+    background: var(--bg-tertiary, #21262d);
+    border: 2px solid var(--border-default, #30363d);
+    border-radius: var(--radius-lg, 8px);
+    min-width: 100px;
+    transition: all 0.2s ease;
+}
+
+.stage-icon {
+    font-size: 1.5rem;
+    margin-bottom: var(--spacing-xs, 4px);
+}
+
+.stage-label {
+    font-size: var(--font-size-small, 12px);
+    font-weight: 600;
+    color: var(--text-primary, #e6edf3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--spacing-xs, 4px);
+}
+
+.stage-status {
+    font-size: var(--font-size-small, 12px);
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: rgba(110, 118, 129, 0.15);
+    color: var(--stage-idle, #6e7681);
+    text-transform: lowercase;
+}
+
+.stage-timing {
+    font-family: var(--font-code, monospace);
+    font-size: 11px;
+    color: var(--text-muted, #6e7681);
+    margin-top: var(--spacing-xs, 4px);
+}
+
+/* Stage States */
+.pipeline-stage[data-status="running"] .stage-box {
+    border-color: var(--stage-running, #58a6ff);
+    box-shadow: 0 0 12px rgba(88, 166, 255, 0.3);
+}
+
+.pipeline-stage[data-status="running"] .stage-status {
+    background: rgba(88, 166, 255, 0.15);
+    color: var(--stage-running, #58a6ff);
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.pipeline-stage[data-status="complete"] .stage-box {
+    border-color: var(--stage-complete, #3fb950);
+}
+
+.pipeline-stage[data-status="complete"] .stage-status {
+    background: rgba(63, 185, 80, 0.15);
+    color: var(--stage-complete, #3fb950);
+}
+
+.pipeline-stage[data-status="hit"] .stage-box {
+    border-color: var(--stage-hit, #3fb950);
+}
+
+.pipeline-stage[data-status="hit"] .stage-status {
+    background: rgba(63, 185, 80, 0.15);
+    color: var(--stage-hit, #3fb950);
+}
+
+.pipeline-stage[data-status="miss"] .stage-box {
+    border-color: var(--stage-miss, #d29922);
+}
+
+.pipeline-stage[data-status="miss"] .stage-status {
+    background: rgba(210, 153, 34, 0.15);
+    color: var(--stage-miss, #d29922);
+}
+
+.pipeline-stage[data-status="error"] .stage-box {
+    border-color: var(--stage-error, #f85149);
+}
+
+.pipeline-stage[data-status="error"] .stage-status {
+    background: rgba(248, 81, 73, 0.15);
+    color: var(--stage-error, #f85149);
+}
+
+.pipeline-stage[data-status="simulated"] .stage-box {
+    border-color: var(--stage-simulated, #a371f7);
+}
+
+.pipeline-stage[data-status="simulated"] .stage-status {
+    background: rgba(163, 113, 247, 0.15);
+    color: var(--stage-simulated, #a371f7);
+}
+
+.pipeline-stage[data-status="skipped"] .stage-box {
+    opacity: 0.5;
+}
+
+.pipeline-stage[data-status="skipped"] .stage-status {
+    background: rgba(110, 118, 129, 0.15);
+    color: var(--text-muted, #6e7681);
+}
+
+/* Running animation */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* Arrows */
+.pipeline-arrow {
+    display: flex;
+    align-items: center;
+    color: var(--text-muted, #6e7681);
+    padding: 0 var(--spacing-xs, 4px);
+}
+
+.arrow-line {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: var(--border-default, #30363d);
+}
+
+.arrow-head {
+    font-size: 10px;
+    margin-left: -2px;
+}
+
+/* Summary */
+.pipeline-summary {
+    padding: var(--spacing-sm, 8px) var(--spacing-md, 16px);
+    background: var(--bg-tertiary, #21262d);
+    border-top: 1px solid var(--border-default, #30363d);
+    text-align: center;
+}
+
+.summary-text {
+    font-size: var(--font-size-small, 12px);
+    color: var(--text-secondary, #8b949e);
+}
+
+.summary-text.success {
+    color: var(--accent-success, #3fb950);
+}
+
+.summary-text.error {
+    color: var(--accent-error, #f85149);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .pipeline-flow {
+        flex-wrap: wrap;
+        gap: var(--spacing-sm, 8px);
+    }
+    
+    .pipeline-arrow {
+        display: none;
+    }
+    
+    .stage-box {
+        min-width: 80px;
+        padding: var(--spacing-sm, 8px);
+    }
+    
+    .stage-icon {
+        font-size: 1.2rem;
+    }
+}

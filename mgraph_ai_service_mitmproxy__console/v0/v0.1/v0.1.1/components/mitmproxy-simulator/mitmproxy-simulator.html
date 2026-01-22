@@ -1,0 +1,24 @@
+<!-- ═══════════════════════════════════════════════════════════════════════════════
+   MitmProxy Simulator - Main Orchestrator Template
+   v0.1.1 - Two-column layout: Config+Pipeline left, Details right
+   ═══════════════════════════════════════════════════════════════════════════════ -->
+
+<div class="simulator-container">
+    <!-- Left Column: Configuration + Pipeline -->
+    <aside class="simulator-left">
+        <section class="simulator-section config-section">
+            <simulator-config></simulator-config>
+        </section>
+        
+        <section class="simulator-section status-section">
+            <pipeline-status></pipeline-status>
+        </section>
+    </aside>
+    
+    <!-- Right Column: Details -->
+    <main class="simulator-right">
+        <section class="simulator-section details-section">
+            <details-panel></details-panel>
+        </section>
+    </main>
+</div>

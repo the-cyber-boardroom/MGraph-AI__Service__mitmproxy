@@ -1,6 +1,6 @@
 <!-- ═══════════════════════════════════════════════════════════════════════════════
    MitmProxy Simulator - Configuration Panel Template
-   v0.1.0 - Shadow DOM template
+   v0.1.1 - Updated default URL pattern
    ═══════════════════════════════════════════════════════════════════════════════ -->
 
 <div class="simulator-config-container">
@@ -17,8 +17,8 @@
                     type="text" 
                     class="form-control" 
                     id="url-input" 
-                    placeholder="https://news.xyz-corp.test/articles/tech-trends-2026"
-                    value="https://news.xyz-corp.test/articles/tech-trends-2026"
+                    placeholder="https://website-xyz.test/content/article-page"
+                    value="https://website-xyz.test/content/article-page"
                 >
                 <span class="url-hint" id="url-hint"></span>
             </div>
@@ -55,6 +55,14 @@
                     <!-- Options populated from SampleHtml -->
                 </select>
             </div>
+        </div>
+        
+        <!-- Auto-sync URL checkbox -->
+        <div class="config-row config-options">
+            <label class="checkbox-label">
+                <input type="checkbox" id="auto-sync-url" checked>
+                <span>Auto-sync URL with sample selection</span>
+            </label>
         </div>
         
         <!-- Execute Button -->

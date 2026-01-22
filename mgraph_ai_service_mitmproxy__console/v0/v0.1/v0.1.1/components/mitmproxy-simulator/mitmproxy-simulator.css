@@ -1,0 +1,82 @@
+/* ═══════════════════════════════════════════════════════════════════════════════
+   MitmProxy Simulator - Main Orchestrator Styles
+   v0.1.1 - Two-column layout
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+:host {
+    display: block;
+    height: 100%;
+}
+
+.simulator-container {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    gap: var(--spacing-md, 16px);
+    height: 100%;
+    padding: var(--spacing-md, 16px);
+    max-width: 1800px;
+    margin: 0 auto;
+}
+
+/* Left Column */
+.simulator-left {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md, 16px);
+    min-width: 0;
+    overflow: auto;
+}
+
+/* Right Column */
+.simulator-right {
+    min-width: 0;
+    overflow: hidden;
+}
+
+/* Sections */
+.simulator-section {
+    flex-shrink: 0;
+}
+
+/* Config Section */
+.config-section simulator-config {
+    display: block;
+}
+
+/* Status Section */
+.status-section pipeline-status {
+    display: block;
+}
+
+/* Details Section - Takes full height in right column */
+.details-section {
+    height: 100%;
+}
+
+.details-section details-panel {
+    display: block;
+    height: 100%;
+}
+
+/* Responsive: Stack on narrow screens */
+@media (max-width: 1000px) {
+    .simulator-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto 1fr;
+    }
+    
+    .simulator-left {
+        display: contents;
+    }
+    
+    .simulator-right {
+        min-height: 400px;
+    }
+}
+
+@media (max-width: 600px) {
+    .simulator-container {
+        padding: var(--spacing-sm, 8px);
+        gap: var(--spacing-sm, 8px);
+    }
+}

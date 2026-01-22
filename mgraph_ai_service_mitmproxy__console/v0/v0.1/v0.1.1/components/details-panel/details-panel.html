@@ -1,0 +1,43 @@
+<!-- ═══════════════════════════════════════════════════════════════════════════════
+   MitmProxy Simulator - Details Panel Template
+   v0.1.0 - Tabbed view containing stage-tab components
+   ═══════════════════════════════════════════════════════════════════════════════ -->
+
+<div class="details-panel-container">
+    <div class="details-header">
+        <h2 class="details-title">🔍 Details</h2>
+        <div class="details-tabs">
+            <button class="details-tab-btn active" data-stage="request">
+                <span class="tab-icon">📤</span>
+                <span class="tab-label">Request</span>
+            </button>
+            <button class="details-tab-btn" data-stage="cache">
+                <span class="tab-icon">💾</span>
+                <span class="tab-label">Cache</span>
+            </button>
+            <button class="details-tab-btn" data-stage="upstream">
+                <span class="tab-icon">🌐</span>
+                <span class="tab-label">Upstream</span>
+            </button>
+            <button class="details-tab-btn" data-stage="response">
+                <span class="tab-icon">📥</span>
+                <span class="tab-label">Response</span>
+            </button>
+        </div>
+    </div>
+    
+    <div class="details-content">
+        <div class="details-tab-content active" data-stage="request">
+            <stage-tab name="request"></stage-tab>
+        </div>
+        <div class="details-tab-content" data-stage="cache">
+            <stage-tab name="cache"></stage-tab>
+        </div>
+        <div class="details-tab-content" data-stage="upstream">
+            <stage-tab name="upstream"></stage-tab>
+        </div>
+        <div class="details-tab-content" data-stage="response">
+            <stage-tab name="response"></stage-tab>
+        </div>
+    </div>
+</div>

@@ -4,8 +4,9 @@ SERVICE_NAME                             = package_name
 FAST_API__TITLE                          = "MGraph AI Service mitmproxy"
 FAST_API__DESCRIPTION                    = "Base template for MGraph-AI microservices"
 LAMBDA_DEPENDENCIES__FAST_API_SERVERLESS = ['httpx==0.28.1'                          ,
+                                            'memory-fs==v0.40.0'                     ,
                                             'mgraph_ai_service_cache_client==0.28.0' ,
-                                            'osbot-fast-api-serverless==1.33.0'     ]
+                                            'osbot-fast-api-serverless==1.33.0'      ]
 
 
 MITMPROXY__SERVICE__WEB_CONSOLE__PATH              = 'console'
