@@ -7,7 +7,7 @@
 from typing                                                                                     import Dict, Any
 from datetime                                                                                   import datetime
 from osbot_utils.type_safe.Type_Safe                                                            import Type_Safe
-from osbot_utils.type_safe.primitives.core.Safe_Str                                             import Safe_Str
+from osbot_utils.type_safe.primitives.domains.web.safe_str.Safe_Str__Url                        import Safe_Str__Url
 from osbot_utils.type_safe.type_safe_core.decorators.type_safe                                  import type_safe
 from mgraph_ai_service_mitmproxy.service.html_graph.HTML_Graph__Service__Client                 import HTML_Graph__Service__Client
 from mgraph_ai_service_mitmproxy.schemas.html.Enum__HTML__Transformation_Mode                   import Enum__HTML__Transformation_Mode
@@ -27,11 +27,11 @@ class HTML_Graph__Cache__Handler(Type_Safe):                                    
         return self
 
     @type_safe
-    def construct_url(self, scheme : Safe_Str,                                  # Build full URL from components
-                            host   : Safe_Str,
-                            path   : Safe_Str
-                       ) -> Safe_Str:
-        return Safe_Str(f"{scheme}://{host}{path}")
+    def construct_url(self, scheme : str,                                  # Build full URL from components
+                            host   : str,
+                            path   : str
+                       ) -> Safe_Str__Url:
+        return f"{scheme}://{host}{path}"
 
     @type_safe
     def get_mode_from_cookies(self, cookies: Dict[str, str]                     # Extract mitm-mode from cookies dict
@@ -51,9 +51,9 @@ class HTML_Graph__Cache__Handler(Type_Safe):                                    
         host   = request_data.get("host", "")
         path   = request_data.get("path", "/")
 
-        url = self.construct_url(scheme = Safe_Str(scheme),
-                                 host   = Safe_Str(host)  ,
-                                 path   = Safe_Str(path)  )
+        url = self.construct_url(scheme = scheme,
+                                 host   = host  ,
+                                 path   = path )
 
         print(f"    🔄 mitm-mode=cache: Checking HTML Graph cache for {host}{path}")
 
@@ -61,14 +61,15 @@ class HTML_Graph__Cache__Handler(Type_Safe):                                    
 
         if result.success and result.found:
             print(f"      ✅ HTML Graph HIT - serving {result.char_count} chars from cache")
-            return {"status_code": 200                                         ,
-                    "body"       : str(result.html)                            ,
-                    "headers"    : {"content-type"      : "text/html; charset=utf-8"    ,
-                                    "x-cache-source"    : "html-graph"                  ,
-                                    "x-cache-key"       : str(result.cache_key)         ,
-                                    "x-cache-id"        : str(result.cache_id)          ,
-                                    "x-cache-chars"     : str(result.char_count)        ,
-                                    "x-cache-timestamp" : datetime.utcnow().isoformat() }}
+            cached_response =  {"status_code": 200                                         ,
+                                "body"       : str(result.html)                            ,
+                                "headers"    : {"content-type"      : "text/html; charset=utf-8"    ,
+                                                "x-cache-source"    : "html-graph"                  ,
+                                                "x-cache-key"       : str(result.cache_key)         ,
+                                                "x-cache-id"        : str(result.cache_id)          ,
+                                                "x-cache-chars"     : str(result.char_count)        ,
+                                                "x-cache-timestamp" : datetime.utcnow().isoformat() }}
+            return {"cached_response": cached_response}
 
         if result.success and not result.found:
             print(f"      ❌ HTML Graph MISS - will fetch from origin and store")
@@ -97,13 +98,13 @@ class HTML_Graph__Cache__Handler(Type_Safe):                                    
         host   = request.get("host", "")
         path   = request.get("path", "/")
 
-        url = self.construct_url(scheme = Safe_Str(scheme),
-                                 host   = Safe_Str(host)  ,
-                                 path   = Safe_Str(path)  )
+        url = self.construct_url(scheme = scheme,
+                                 host   = host  ,
+                                 path   = path  )
 
         print(f"    📦 Storing in HTML Graph: {host}{path}")
 
-        result = self.html_graph_client.store_html(url=url, html=Safe_Str(html_body))
+        result = self.html_graph_client.store_html(url=url, html=html_body)
 
         if result.success:
             print(f"      ✅ Stored {result.char_count} chars")

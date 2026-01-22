@@ -10,17 +10,17 @@ from mgraph_ai_service_cache_client.schemas.cache.safe_str.Safe_Str__Cache__Name
 from osbot_utils.type_safe.Type_Safe                                                         import Type_Safe
 from osbot_utils.type_safe.primitives.core.Safe_Float                                        import Safe_Float
 from osbot_utils.type_safe.primitives.core.Safe_UInt                                         import Safe_UInt
-from osbot_utils.type_safe.primitives.domains.files.safe_str.Safe_Str__File__Path import Safe_Str__File__Path
+from osbot_utils.type_safe.primitives.domains.files.safe_str.Safe_Str__File__Path            import Safe_Str__File__Path
 from osbot_utils.type_safe.primitives.domains.web.safe_str.Safe_Str__Html                    import Safe_Str__Html
 from osbot_utils.type_safe.primitives.domains.web.safe_str.Safe_Str__Url                     import Safe_Str__Url
 from osbot_utils.type_safe.type_safe_core.decorators.type_safe                               import type_safe
 from osbot_utils.utils.Env                                                                   import get_env
-from mgraph_ai_service_mitmproxy.service.html_graph.schemas.consts__html_graph               import (ENV_VAR__HTML_GRAPH__BASE_URL  ,
-                                                                                                     ENV_VAR__HTML_GRAPH__NAMESPACE ,
-                                                                                                     ENV_VAR__HTML_GRAPH__KEY_NAME  ,
-                                                                                                     ENV_VAR__HTML_GRAPH__KEY_VALUE ,
+from mgraph_ai_service_mitmproxy.service.html_graph.schemas.consts__html_graph               import (ENV_VAR__AUTH__TARGET_SERVER__HTML_GRAPH_SERVICE__BASE_URL  ,
+                                                                                                     ENV_VAR__AUTH__TARGET_SERVER__HTML_GRAPH_SERVICE__NAMESPACE ,
+                                                                                                     ENV_VAR__AUTH__TARGET_SERVER__HTML_GRAPH_SERVICE__KEY_NAME  ,
+                                                                                                     ENV_VAR__AUTH__TARGET_SERVER__HTML_GRAPH_SERVICE__KEY_VALUE ,
                                                                                                      DEFAULT__HTML_GRAPH__NAMESPACE ,
-                                                                                                     DEFAULT__HTML_GRAPH__TIMEOUT   )
+                                                                                                     DEFAULT__HTML_GRAPH__TIMEOUT)
 from mgraph_ai_service_mitmproxy.service.html_graph.schemas.Schema__HTML_Graph__Store_Result import Schema__HTML_Graph__Store_Result
 from mgraph_ai_service_mitmproxy.service.html_graph.schemas.Schema__HTML_Graph__Load_Result  import Schema__HTML_Graph__Load_Result
 
@@ -32,8 +32,8 @@ class HTML_Graph__Service__Client(Type_Safe):                                   
     test_client  : Any          = None                                              # Optional TestClient for testing
 
     def setup(self) -> 'HTML_Graph__Service__Client':                           # Configure from environment
-        base_url_env  = get_env(ENV_VAR__HTML_GRAPH__BASE_URL)
-        namespace_env = get_env(ENV_VAR__HTML_GRAPH__NAMESPACE)
+        base_url_env  = get_env(ENV_VAR__AUTH__TARGET_SERVER__HTML_GRAPH_SERVICE__BASE_URL)
+        namespace_env = get_env(ENV_VAR__AUTH__TARGET_SERVER__HTML_GRAPH_SERVICE__NAMESPACE)
 
         if base_url_env:
             self.base_url = base_url_env
@@ -48,8 +48,8 @@ class HTML_Graph__Service__Client(Type_Safe):                                   
         return self
 
     def get_auth_headers(self) -> dict:                                         # Build authentication headers
-        key_name  = get_env(ENV_VAR__HTML_GRAPH__KEY_NAME)
-        key_value = get_env(ENV_VAR__HTML_GRAPH__KEY_VALUE)
+        key_name  = get_env(ENV_VAR__AUTH__TARGET_SERVER__HTML_GRAPH_SERVICE__KEY_NAME)
+        key_value = get_env(ENV_VAR__AUTH__TARGET_SERVER__HTML_GRAPH_SERVICE__KEY_VALUE)
 
         headers = {"Content-Type": "application/json"}
 
@@ -80,7 +80,7 @@ class HTML_Graph__Service__Client(Type_Safe):                                   
         headers = self.get_auth_headers()
 
         if self.test_client is not None:                                        # Use TestClient for testing
-            response    = self.test_client.post(str(endpoint), json=json_data, headers=headers)
+            response    = self.test_client.post(endpoint, json=json_data, headers=headers)
             status_code = response.status_code
             try:
                 data = response.json()
@@ -90,6 +90,10 @@ class HTML_Graph__Service__Client(Type_Safe):                                   
         else:                                                                   # Use requests for production
             import requests
             full_url = f"{self.base_url}{endpoint}"
+            print('****************')
+            print(full_url)
+            print(json_data)
+            print('****************')
             response = requests.post(url     = full_url            ,
                                      headers = headers             ,
                                      json    = json_data           ,
@@ -134,34 +138,39 @@ class HTML_Graph__Service__Client(Type_Safe):                                   
     @type_safe
     def load_html(self, url: Safe_Str__Url) -> Schema__HTML_Graph__Load_Result:      # Load HTML content by URL
 
-        cache_key = self.url_to_cache_key(url)
-        endpoint  = f"/flet-html-domain/html/load/{self.namespace}/key/{cache_key}"
+        target_server = get_env(ENV_VAR__AUTH__TARGET_SERVER__HTML_GRAPH_SERVICE__BASE_URL)
+        if target_server is None:
+            return Schema__HTML_Graph__Load_Result(success=False, error='HTML Graph NOT AVAILABLE')
+        else:
+            cache_key = self.url_to_cache_key(url)
+            endpoint  = f"/flet-html-domain/html/load/{self.namespace}/key/{cache_key}"
 
-        print(f"    🔍 HTML Graph LOAD: {cache_key}")
+            print(f"    🔍 HTML Graph LOAD: {cache_key}")
 
-        try:
-            status_code, data = self.make_post_request(endpoint, {})
+            try:
+                status_code, data = self.make_post_request(endpoint, {})
 
-            if status_code == 200:
-                found = data.get("found", False)
 
-                if found:
-                    print(f"    ✅ Cache HIT: {data.get('char_count', 0)} chars")
-                    return Schema__HTML_Graph__Load_Result(success    = True                                   ,
-                                                           found      = True                                   ,
-                                                           html       = data.get("html", "")                   ,
-                                                           cache_id   = data.get("cache_id", "")               ,
-                                                           cache_key  = data.get("cache_key", str(cache_key))  ,
-                                                           char_count = data.get("char_count", 0)              )
+                if status_code == 200:
+                    found = data.get("found", False)
+
+                    if found:
+                        print(f"    ✅ Cache HIT: {data.get('char_count', 0)} chars")
+                        return Schema__HTML_Graph__Load_Result(success    = True                                   ,
+                                                               found      = True                                   ,
+                                                               html       = data.get("html", "")                   ,
+                                                               cache_id   = data.get("cache_id", "")               ,
+                                                               cache_key  = data.get("cache_key", str(cache_key))  ,
+                                                               char_count = data.get("char_count", 0)              )
+                    else:
+                        print(f"    ❌ Cache MISS")
+                        return Schema__HTML_Graph__Load_Result(success=True, found=False)
                 else:
-                    print(f"    ❌ Cache MISS")
-                    return Schema__HTML_Graph__Load_Result(success=True, found=False)
-            else:
-                error_msg = f"HTTP {status_code}"
-                print(f"    ⚠️  Load failed: {error_msg}")
-                return Schema__HTML_Graph__Load_Result(success=False, error=error_msg)
+                    error_msg = f"HTTP {status_code}"
+                    print(f"    ⚠️  Load failed: {error_msg}")
+                    return Schema__HTML_Graph__Load_Result(success=False, error=error_msg)
 
-        except Exception as e:
-            error_msg = f"Error: {e}"
-            print(f"    ⚠️  {error_msg}")
-            return Schema__HTML_Graph__Load_Result(success=False, error=error_msg)
+            except Exception as e:
+                error_msg = f"Error: {e}"
+                print(f"    ⚠️  {error_msg}")
+                return Schema__HTML_Graph__Load_Result(success=False, error=error_msg)

@@ -22,7 +22,7 @@ class Proxy__Content__Service(Type_Safe):                            # Content p
                               ) -> Optional[Dict]:
         cookies = self.parse_cookies(request_data.headers)
 
-        if cookies.get('cache_test') == 'true':
+        if cookies.get('mitm-mode') == 'cache_test':
             try:
                 cached_html = """
                <!DOCTYPE html>

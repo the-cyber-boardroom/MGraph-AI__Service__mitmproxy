@@ -18,9 +18,9 @@ import urllib.error
 from concurrent.futures import ThreadPoolExecutor
 
 # Configuration
-FASTAPI_BASE_URL = "https://mitmproxy-api.dev.mgraph.ai"            # use when deploying to AWS EC2
+#FASTAPI_BASE_URL = "https://mitmproxy-api.dev.mgraph.ai"            # use when deploying to AWS EC2
 # on local docker use this (note: at the moment this is done manually during development)
-#FASTAPI_BASE_URL  = "http://host.docker.internal:10016"     # todo: make this work with env vars
+FASTAPI_BASE_URL  = "http://host.docker.internal:10016"     # todo: make this work with env vars
 
 REQUEST_ENDPOINT     = "/proxy/process-request"
 RESPONSE_ENDPOINT    = "/proxy/process-response"

@@ -14,6 +14,9 @@ class Enum__HTML__Transformation_Mode(str, Enum):
     XXX           = "xxx"              # All text → xxx (no filtering)
     HASHES        = "hashes"           # All text → hashes (no filtering)
 
+    # CACHE Modes
+    CACHE              = "cache"                                                            # Passive HTML Graph cache
+
     # 🆕 Sentiment-filtered modes
     XXX_NEGATIVE          = "xxx-negative"           # Show positive sentiment (negative > 0.3)
     XXX_NEGATIVE_05       = "xxx-negative-0.5"       # Show positive sentiment (negative > 0.5)

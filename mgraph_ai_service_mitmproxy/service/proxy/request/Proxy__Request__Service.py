@@ -1,26 +1,34 @@
-from osbot_utils.type_safe.Type_Safe                                        import Type_Safe
-from mgraph_ai_service_mitmproxy.schemas.proxy.Schema__Proxy__Request_Data  import Schema__Proxy__Request_Data
-from mgraph_ai_service_mitmproxy.schemas.proxy.Schema__Proxy__Modifications import Schema__Proxy__Modifications
-from mgraph_ai_service_mitmproxy.service.proxy.Proxy__Stats__Service        import Proxy__Stats__Service
-from mgraph_ai_service_mitmproxy.service.proxy.Proxy__Content__Service      import Proxy__Content__Service
-from mgraph_ai_service_mitmproxy.service.proxy.Proxy__Cookie__Service       import Proxy__Cookie__Service
-from mgraph_ai_service_mitmproxy.service.admin.Proxy__Admin__Service        import Proxy__Admin__Service
-from mgraph_ai_service_mitmproxy.utils.Version                              import version__mgraph_ai_service_mitmproxy
-from datetime                                                               import datetime
+from typing                                                                     import Dict
+from osbot_utils.type_safe.Type_Safe                                            import Type_Safe
+from mgraph_ai_service_mitmproxy.schemas.proxy.Schema__Proxy__Request_Data      import Schema__Proxy__Request_Data
+from mgraph_ai_service_mitmproxy.schemas.proxy.Schema__Proxy__Modifications     import Schema__Proxy__Modifications
+from mgraph_ai_service_mitmproxy.service.html_graph.HTML_Graph__Cache__Handler  import HTML_Graph__Cache__Handler
+from mgraph_ai_service_mitmproxy.service.proxy.Proxy__Stats__Service            import Proxy__Stats__Service
+from mgraph_ai_service_mitmproxy.service.proxy.Proxy__Content__Service          import Proxy__Content__Service
+from mgraph_ai_service_mitmproxy.service.proxy.Proxy__Cookie__Service           import Proxy__Cookie__Service
+from mgraph_ai_service_mitmproxy.service.admin.Proxy__Admin__Service            import Proxy__Admin__Service
+from mgraph_ai_service_mitmproxy.utils.Version                                  import version__mgraph_ai_service_mitmproxy
+from datetime                                                                   import datetime
 import json
 
+# NOTE: this is the main entry point from the Mitmproxy
+
 class Proxy__Request__Service(Type_Safe):                            # Request processing orchestration
-    stats_service   : Proxy__Stats__Service                          # Statistics tracking
-    content_service : Proxy__Content__Service                        # Content processing
-    cookie_service  : Proxy__Cookie__Service                         # Cookie-based control
-    admin_service   : Proxy__Admin__Service      = None              # Admin page generation
+    stats_service       : Proxy__Stats__Service                          # Statistics tracking
+    content_service     : Proxy__Content__Service                        # Content processing
+    cookie_service      : Proxy__Cookie__Service                         # Cookie-based control
+    admin_service       : Proxy__Admin__Service      = None              # Admin page generation
+    html_graph_handler  : HTML_Graph__Cache__Handler = None
+
 
     def setup(self):
-        self.admin_service = Proxy__Admin__Service ().setup()
+        self.admin_service      = Proxy__Admin__Service     ().setup()
+        self.html_graph_handler = HTML_Graph__Cache__Handler().setup()
         return self
 
     def process_request(self, request_data : Schema__Proxy__Request_Data  # Process incoming request
                         ) -> Schema__Proxy__Modifications:
+
 
         if self.admin_service.is_admin_path(request_data.path):             # CHECK FOR ADMIN PATHS FIRST (before any other processing)
             return self.handle_admin_request(request_data)
@@ -28,6 +36,10 @@ class Proxy__Request__Service(Type_Safe):                            # Request p
         # Update statistics
         self.stats_service.increment_request(host = request_data.host,
                                              path = request_data.path)
+
+        cached_response = self.check_html_graph_cache(request_data.json()) # todo use Schema__Proxy__Request_Data
+        if cached_response is not None:
+            return cached_response                                             # Short-circuit: return cached HTML
 
         modifications = Schema__Proxy__Modifications()                              # Create response with modifications
 
@@ -75,3 +87,33 @@ class Proxy__Request__Service(Type_Safe):                            # Request p
             modifications.cached_response = cached_response
             #print(f"      🔧   Returning ADMIN PAGE: {endpoint}")
         return modifications
+
+
+    # todo: refactor this to separate class
+
+    def extract_cookies_from_headers(self, headers: Dict[str, str]              # Parse Cookie header
+                                      ) -> Dict[str, str]:
+        cookies = {}
+        cookie_header = headers.get("cookie", headers.get("Cookie", ""))
+
+        if cookie_header:
+            for item in cookie_header.split(";"):
+                if "=" in item:
+                    key, value = item.strip().split("=", 1)
+                    cookies[key.strip()] = value.strip()
+
+        return cookies
+
+    def check_html_graph_cache(self, request_data: dict                         # Check cache for mitm-mode=cache
+                                ) -> dict:                                      # Returns cached response or None
+        if self.html_graph_handler is None:
+            return None
+
+        headers = request_data.get("headers", {})
+        cookies = self.extract_cookies_from_headers(headers)
+
+        if self.html_graph_handler.is_cache_mode(cookies) is False:
+            return None                                                         # Not in cache mode
+
+        cached_response = self.html_graph_handler.check_cache(request_data)
+        return cached_response                                                  # dict if HIT, None if MISS

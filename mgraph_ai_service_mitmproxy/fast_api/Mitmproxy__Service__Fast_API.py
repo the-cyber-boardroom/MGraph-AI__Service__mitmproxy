@@ -17,7 +17,7 @@ class Mitmproxy__Service__Fast_API(Serverless__Fast_API):
         with self.config as _:
             _.name           = FAST_API__TITLE
             _.version        =  version__mgraph_ai_service_mitmproxy
-            #_.enable_api_key = False
+            #_.enable_api_key = False                       # LEGACY
             _.enable_api_key = True                                     # todo: update proxy to support this auth
 
         self.setup_web_console()

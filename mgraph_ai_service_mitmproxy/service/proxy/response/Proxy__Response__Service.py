@@ -5,6 +5,7 @@ from mgraph_ai_service_mitmproxy.schemas.proxy.Schema__Proxy__Response_Data     
 from mgraph_ai_service_mitmproxy.schemas.proxy.Schema__Proxy__Modifications          import Schema__Proxy__Modifications
 from mgraph_ai_service_mitmproxy.schemas.proxy.Schema__Response__Processing_Result   import Schema__Response__Processing_Result
 from mgraph_ai_service_mitmproxy.service.html.HTML__Transformation__Service          import HTML__Transformation__Service
+from mgraph_ai_service_mitmproxy.service.html_graph.HTML_Graph__Cache__Handler       import HTML_Graph__Cache__Handler
 from mgraph_ai_service_mitmproxy.service.proxy.Proxy__Debug__Service                 import Proxy__Debug__Service
 from mgraph_ai_service_mitmproxy.service.proxy.Proxy__Stats__Service                 import Proxy__Stats__Service
 from mgraph_ai_service_mitmproxy.service.proxy.Proxy__Headers__Service               import Proxy__Headers__Service
@@ -18,10 +19,12 @@ class Proxy__Response__Service(Type_Safe):                       # Main response
     headers_service             : Proxy__Headers__Service                    # Standard headers
     cookie_service              : Proxy__Cookie__Service                     # Cookie-based control
     html_transformation_service : HTML__Transformation__Service = None
+    html_graph_handler          : HTML_Graph__Cache__Handler    = None
 
     def setup(self):
-        self.debug_service               = Proxy__Debug__Service().setup()
+        self.debug_service               = Proxy__Debug__Service        ().setup()
         self.html_transformation_service = HTML__Transformation__Service().setup()
+        self.html_graph_handler          = HTML_Graph__Cache__Handler   ().setup()
         return self
 
     def generate_request_id(self) -> str:                        # Generate unique request ID
@@ -54,6 +57,8 @@ class Proxy__Response__Service(Type_Safe):                       # Main response
                                                          modifications=modifications )
             if modifications.modified_body:                                                         # Check if content was modified (but not overridden)
                 self.stats_service.increment_content_modification()
+
+            self.handle_html_graph_store(response_data.json())              # todo: we should be using Schema__Proxy__Response_Data here
 
             # Process HTML transformation based on mitm-mode cookie
             transformed_html, transformation_headers = self.process_html_transformation(response_data   = response_data    ,
@@ -216,3 +221,48 @@ class Proxy__Response__Service(Type_Safe):                       # Main response
             return f"{scheme}://{host}{path}"
         else:
             return f"{scheme}://{host}:{port}{path}"
+
+
+    # todo: move this HTML Graph code to separate class
+
+    def extract_cookies_from_request(self, response_data: dict                  # Get cookies from request in response_data
+                                      ) -> Dict[str, str]:
+        request = response_data.get("request", {})
+        headers = request.get("headers", {})
+        cookies = {}
+        cookie_header = headers.get("cookie", headers.get("Cookie", ""))
+
+        if cookie_header:
+            for item in cookie_header.split(";"):
+                if "=" in item:
+                    key, value = item.strip().split("=", 1)
+                    cookies[key.strip()] = value.strip()
+
+        return cookies
+
+
+    def handle_html_graph_store(self, response_data: dict                       # Store HTML on cache miss
+                                 ) -> Dict[str, str]:                           # Returns headers to add
+        if self.html_graph_handler is None:
+            return {}
+
+        cookies = self.extract_cookies_from_request(response_data)
+
+        if self.html_graph_handler.is_cache_mode(cookies) is False:
+            return {}                                                           # Not in cache mode
+
+        store_headers = self.html_graph_handler.store_html(response_data)
+        return store_headers
+
+
+    def process_cache_mode_response(self, response_data: dict                   # Handle full response for cache mode
+                                     ) -> dict:                                 # Returns response dict
+        store_headers = self.handle_html_graph_store(response_data)
+
+        response         = response_data.get("response", {})
+        existing_headers = dict(response.get("headers", {}))
+        existing_headers.update(store_headers)
+
+        return {"status_code": response.get("status_code", 200),
+                "body"       : response.get("body", "")        ,
+                "headers"    : existing_headers                }

@@ -368,7 +368,8 @@ print("=" * 60)
         print(f"\n✓ Created development script template: {script_path}")
         print("  You can now modify this script and reload it in the container")
 
-
+    # todo: this is the method to update the local mitmproxy
+    #       refactor into separate class and workflow
     def test_create_container(self):
         self.test_cleanup()
         self.test_create_persistent_container_for_development()

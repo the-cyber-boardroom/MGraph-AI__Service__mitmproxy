@@ -5,6 +5,7 @@ from typing                                                                    i
 from mgraph_ai_service_mitmproxy.service.request.Proxy__Query__Parser__Service import Proxy__Query__Parser__Service
 from mgraph_ai_service_mitmproxy.service.request.Proxy__URL__Builder__Service  import Proxy__URL__Builder__Service
 
+# NOTE this is NOT the main entry point from the Mitmproxy
 
 # todo: fix duplicate name with proxy/Proxy__Request__Service
 class Proxy__Request__Service(Type_Safe):                        # Main request processing service
