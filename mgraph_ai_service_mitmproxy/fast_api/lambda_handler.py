@@ -20,9 +20,9 @@ handler = None
 app     = None
 
 try:
-    from mgraph_ai_service_mitmproxy.fast_api.Service__Fast_API import Service__Fast_API
+    from mgraph_ai_service_mitmproxy.fast_api.Mitmproxy__Service__Fast_API import Mitmproxy__Service__Fast_API
 
-    with Service__Fast_API() as _:
+    with Mitmproxy__Service__Fast_API() as _:
         _.setup()
         handler = _.handler()
         app     = _.app()

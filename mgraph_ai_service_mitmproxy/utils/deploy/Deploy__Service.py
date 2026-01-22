@@ -1,6 +1,6 @@
-from osbot_utils.utils.Env import get_env
-
 import mgraph_ai_service_mitmproxy__admin_ui
+import mgraph_ai_service_mitmproxy__console
+from osbot_utils.utils.Env                                          import get_env
 from osbot_fast_api_serverless.deploy.Deploy__Serverless__Fast_API  import Deploy__Serverless__Fast_API
 from mgraph_ai_service_mitmproxy.config                             import SERVICE_NAME, LAMBDA_DEPENDENCIES__FAST_API_SERVERLESS
 from mgraph_ai_service_mitmproxy.fast_api.lambda_handler            import run
@@ -32,6 +32,7 @@ class Deploy__Service(Deploy__Serverless__Fast_API):
 
 
             _.add_folder(mgraph_ai_service_mitmproxy__admin_ui.path)
+            _.add_folder(mgraph_ai_service_mitmproxy__console.path)
             return _
 
     def handler(self):

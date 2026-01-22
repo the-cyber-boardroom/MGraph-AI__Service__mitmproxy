@@ -1,0 +1,71 @@
+<!-- ═══════════════════════════════════════════════════════════════════════════════
+   MitmProxy Simulator - Configuration Panel Template
+   v0.1.0 - Shadow DOM template
+   ═══════════════════════════════════════════════════════════════════════════════ -->
+
+<div class="simulator-config-container">
+    <div class="config-header">
+        <h2 class="config-title">⚙️ Configuration</h2>
+    </div>
+    
+    <div class="config-body">
+        <!-- URL Input -->
+        <div class="config-row">
+            <div class="form-group url-group">
+                <label class="form-label" for="url-input">Target URL</label>
+                <input 
+                    type="text" 
+                    class="form-control" 
+                    id="url-input" 
+                    placeholder="https://news.acme-corp.test/articles/tech-trends-2026"
+                    value="https://news.acme-corp.test/articles/tech-trends-2026"
+                >
+                <span class="url-hint" id="url-hint"></span>
+            </div>
+        </div>
+        
+        <!-- Mode and Sample Selection -->
+        <div class="config-row config-selects">
+            <div class="form-group">
+                <label class="form-label" for="mode-select">Transformation Mode</label>
+                <select class="form-control" id="mode-select">
+                    <option value="off">off - Pass through unchanged</option>
+                    <option value="cache" selected>cache - HTML Graph cache</option>
+                    <optgroup label="XXX Masking">
+                        <option value="xxx">xxx - Mask all text</option>
+                        <option value="xxx-random">xxx-random - Mask random 50%</option>
+                        <option value="xxx-negative">xxx-negative - Mask negative sentiment</option>
+                        <option value="xxx-negative-1">xxx-negative-1 - Mask negative > 0.1</option>
+                        <option value="xxx-negative-2">xxx-negative-2 - Mask negative > 0.2</option>
+                        <option value="xxx-negative-4">xxx-negative-4 - Mask negative > 0.4</option>
+                        <option value="xxx-hide-positive">xxx-hide-positive - Mask positive</option>
+                        <option value="xxx-hide-neutral">xxx-hide-neutral - Mask neutral</option>
+                    </optgroup>
+                    <optgroup label="Hash/ID Modes">
+                        <option value="hashes">hashes - Replace with hash IDs</option>
+                        <option value="hashes-random">hashes-random - Random 50% as hashes</option>
+                        <option value="abcde-by-size">abcde-by-size - Group by text length</option>
+                    </optgroup>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="sample-select">Sample HTML (Upstream)</label>
+                <select class="form-control" id="sample-select">
+                    <!-- Options populated from SampleHtml -->
+                </select>
+            </div>
+        </div>
+        
+        <!-- Execute Button -->
+        <div class="config-row config-actions">
+            <button class="btn btn-primary btn-lg" id="execute-btn">
+                <span class="btn-icon">▶</span>
+                <span class="btn-text">Execute Flow</span>
+            </button>
+            <button class="btn btn-sm" id="reset-btn" title="Reset">
+                ↺ Reset
+            </button>
+        </div>
+    </div>
+</div>

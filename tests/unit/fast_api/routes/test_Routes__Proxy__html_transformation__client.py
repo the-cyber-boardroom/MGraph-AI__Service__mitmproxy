@@ -35,7 +35,6 @@ class test_Routes__Proxy__HTML_Transformation__client(TestCase):               #
         cls.temp_env_vars = Temp_Env_Vars(env_vars=env_vars).set_vars()
 
         # NOW create the TestClient
-        #cls.client = TestClient(Service__Fast_API().setup().app())
         cls.test_objs = setup__service_fast_api_test_objs()
         cls.client    = cls.test_objs.fast_api__client
         cls.app       = cls.test_objs.fast_api__app

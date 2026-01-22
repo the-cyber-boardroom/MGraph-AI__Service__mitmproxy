@@ -1,0 +1,107 @@
+/* ═══════════════════════════════════════════════════════════════════════════════
+   MitmProxy Simulator - Top Navigation Styles
+   v0.1.0 - Component-specific styles
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+.top-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-sm, 8px) var(--spacing-md, 16px);
+    background: var(--bg-secondary, #161b22);
+    border-bottom: 1px solid var(--border-default, #30363d);
+    height: 48px;
+}
+
+/* Brand */
+.top-nav-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm, 8px);
+    text-decoration: none;
+    color: var(--text-primary, #e6edf3);
+}
+
+.top-nav-brand:hover {
+    text-decoration: none;
+}
+
+.top-nav-brand-icon {
+    font-size: 1.25rem;
+}
+
+.top-nav-brand-text {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.top-nav-version {
+    font-size: var(--font-size-small, 12px);
+    color: var(--text-muted, #6e7681);
+    padding: 2px 6px;
+    background: var(--bg-tertiary, #21262d);
+    border-radius: var(--radius-sm, 4px);
+}
+
+/* Links */
+.top-nav-links {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md, 16px);
+}
+
+.top-nav-link {
+    color: var(--text-secondary, #8b949e);
+    text-decoration: none;
+    font-size: var(--font-size-base, 14px);
+    padding: var(--spacing-xs, 4px) var(--spacing-sm, 8px);
+    border-radius: var(--radius-sm, 4px);
+    transition: all 0.15s ease;
+}
+
+.top-nav-link:hover {
+    color: var(--text-primary, #e6edf3);
+    background: var(--bg-tertiary, #21262d);
+    text-decoration: none;
+}
+
+.top-nav-link.active {
+    color: var(--text-primary, #e6edf3);
+    background: var(--bg-tertiary, #21262d);
+}
+
+/* API Status Indicator */
+.top-nav-status {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs, 4px);
+    font-size: var(--font-size-small, 12px);
+    color: var(--text-muted, #6e7681);
+    padding: var(--spacing-xs, 4px) var(--spacing-sm, 8px);
+    background: var(--bg-tertiary, #21262d);
+    border-radius: var(--radius-sm, 4px);
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-muted, #6e7681);
+    transition: background 0.2s ease;
+}
+
+.top-nav-status.online .status-dot {
+    background: var(--accent-success, #3fb950);
+}
+
+.top-nav-status.offline .status-dot {
+    background: var(--accent-error, #f85149);
+}
+
+.top-nav-status.online .status-text {
+    color: var(--accent-success, #3fb950);
+}
+
+.top-nav-status.offline .status-text {
+    color: var(--accent-error, #f85149);
+}

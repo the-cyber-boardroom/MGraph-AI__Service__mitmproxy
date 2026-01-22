@@ -1,0 +1,70 @@
+<!-- ═══════════════════════════════════════════════════════════════════════════════
+   MitmProxy Simulator - Stage Tab Template
+   v0.1.0 - Shadow DOM template for individual pipeline stage details
+   ═══════════════════════════════════════════════════════════════════════════════ -->
+
+<div class="stage-tab-container">
+    <!-- Stage Header -->
+    <div class="stage-tab-header">
+        <div class="stage-tab-title">
+            <span class="stage-icon" id="stage-icon">⏳</span>
+            <span class="stage-name" id="stage-name">Stage</span>
+            <span class="stage-status badge" id="stage-status">idle</span>
+        </div>
+        <div class="stage-timing" id="stage-timing">-</div>
+    </div>
+
+    <!-- Content Area: Side-by-side Input/Output -->
+    <div class="stage-tab-content">
+        <!-- Input Panel -->
+        <div class="stage-panel input-panel">
+            <div class="panel-header">
+                <span class="panel-icon">📥</span>
+                <span class="panel-title">Input</span>
+                <div class="panel-tabs">
+                    <button class="panel-tab-btn active" data-view="headers">Headers</button>
+                    <button class="panel-tab-btn" data-view="body">Body</button>
+                </div>
+            </div>
+            <div class="panel-content">
+                <div class="panel-view active" id="input-headers">
+                    <pre class="code-block"><code id="input-headers-code">No data</code></pre>
+                </div>
+                <div class="panel-view" id="input-body">
+                    <pre class="code-block"><code id="input-body-code">No data</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Panel -->
+        <div class="stage-panel output-panel">
+            <div class="panel-header">
+                <span class="panel-icon">📤</span>
+                <span class="panel-title">Output</span>
+                <div class="panel-tabs">
+                    <button class="panel-tab-btn active" data-view="headers">Headers</button>
+                    <button class="panel-tab-btn" data-view="body">Body</button>
+                    <button class="panel-tab-btn" data-view="preview">Preview</button>
+                </div>
+            </div>
+            <div class="panel-content">
+                <div class="panel-view active" id="output-headers">
+                    <pre class="code-block"><code id="output-headers-code">No data</code></pre>
+                </div>
+                <div class="panel-view" id="output-body">
+                    <pre class="code-block"><code id="output-body-code">No data</code></pre>
+                </div>
+                <div class="panel-view" id="output-preview">
+                    <iframe class="preview-frame" id="preview-frame" sandbox="allow-same-origin"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="stage-empty hidden" id="stage-empty">
+        <div class="empty-icon">📭</div>
+        <p class="empty-text">No data yet</p>
+        <p class="empty-hint">Execute a flow to see stage details</p>
+    </div>
+</div>

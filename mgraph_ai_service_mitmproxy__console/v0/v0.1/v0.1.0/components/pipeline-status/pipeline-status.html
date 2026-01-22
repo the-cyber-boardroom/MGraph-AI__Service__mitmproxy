@@ -1,0 +1,75 @@
+<!-- ═══════════════════════════════════════════════════════════════════════════════
+   MitmProxy Simulator - Pipeline Status Template
+   v0.1.0 - Visual flow with stage status boxes
+   ═══════════════════════════════════════════════════════════════════════════════ -->
+
+<div class="pipeline-status-container">
+    <div class="pipeline-header">
+        <h2 class="pipeline-title">📊 Pipeline Status</h2>
+    </div>
+    
+    <div class="pipeline-flow">
+        <!-- Stage: Request -->
+        <div class="pipeline-stage" data-stage="request">
+            <div class="stage-box">
+                <div class="stage-icon">📤</div>
+                <div class="stage-label">Request</div>
+                <div class="stage-status" id="request-status">idle</div>
+                <div class="stage-timing" id="request-timing">-</div>
+            </div>
+        </div>
+        
+        <!-- Arrow -->
+        <div class="pipeline-arrow">
+            <span class="arrow-line"></span>
+            <span class="arrow-head">▶</span>
+        </div>
+        
+        <!-- Stage: Cache -->
+        <div class="pipeline-stage" data-stage="cache">
+            <div class="stage-box">
+                <div class="stage-icon">💾</div>
+                <div class="stage-label">Cache</div>
+                <div class="stage-status" id="cache-status">idle</div>
+                <div class="stage-timing" id="cache-timing">-</div>
+            </div>
+        </div>
+        
+        <!-- Arrow -->
+        <div class="pipeline-arrow">
+            <span class="arrow-line"></span>
+            <span class="arrow-head">▶</span>
+        </div>
+        
+        <!-- Stage: Upstream -->
+        <div class="pipeline-stage" data-stage="upstream">
+            <div class="stage-box">
+                <div class="stage-icon">🌐</div>
+                <div class="stage-label">Upstream</div>
+                <div class="stage-status" id="upstream-status">idle</div>
+                <div class="stage-timing" id="upstream-timing">-</div>
+            </div>
+        </div>
+        
+        <!-- Arrow -->
+        <div class="pipeline-arrow">
+            <span class="arrow-line"></span>
+            <span class="arrow-head">▶</span>
+        </div>
+        
+        <!-- Stage: Response -->
+        <div class="pipeline-stage" data-stage="response">
+            <div class="stage-box">
+                <div class="stage-icon">📥</div>
+                <div class="stage-label">Response</div>
+                <div class="stage-status" id="response-status">idle</div>
+                <div class="stage-timing" id="response-timing">-</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Summary -->
+    <div class="pipeline-summary" id="pipeline-summary">
+        <span class="summary-text">Ready to execute</span>
+    </div>
+</div>

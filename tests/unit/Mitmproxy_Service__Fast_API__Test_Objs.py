@@ -12,13 +12,13 @@ from osbot_utils.type_safe.Type_Safe                                            
 from osbot_utils.type_safe.primitives.domains.identifiers.Random_Guid           import Random_Guid
 from osbot_utils.utils.Env                                                      import set_env
 from starlette.testclient                                                       import TestClient
-from mgraph_ai_service_mitmproxy.fast_api.Service__Fast_API                     import Service__Fast_API
+from mgraph_ai_service_mitmproxy.fast_api.Mitmproxy__Service__Fast_API          import Mitmproxy__Service__Fast_API
 
 TEST_API_KEY__NAME = 'key-used-in-pytest'
 TEST_API_KEY__VALUE = Random_Guid()
 
 class Mitmproxy_Service__Fast_API__Test_Objs(Type_Safe):
-    fast_api        : Service__Fast_API     = None
+    fast_api        : Mitmproxy__Service__Fast_API     = None
     fast_api__app   : FastAPI               = None
     fast_api__client: TestClient            = None
     local_stack     : Local_Stack           = None
@@ -35,7 +35,7 @@ def setup_local_stack() -> Local_Stack:
 def setup__service_fast_api_test_objs():
     with service_fast_api_test_objs as _:
         if service_fast_api_test_objs.setup_completed is False:
-            _.fast_api         = Service__Fast_API().setup()
+            _.fast_api         = Mitmproxy__Service__Fast_API().setup()
             _.fast_api__app    = _.fast_api.app()
             _.fast_api__client = _.fast_api.client()
             _.local_stack      = setup_local_stack()
@@ -134,7 +134,7 @@ class Mitmproxy_Service__Fast_API__Test_Objs__Http(FastAPI__Service__Test_Objs):
     pass
 
 class Mitmproxy_Service__Fast_API__Singleton(Base__FastAPI__Service__Singleton[Mitmproxy_Service__Fast_API__Test_Objs__Http]):
-    service_cls  = Service__Fast_API
+    service_cls  = Mitmproxy__Service__Fast_API
     test_obj_cls = Mitmproxy_Service__Fast_API__Test_Objs__Http
 
 def get__mitmproxy_service__fast_api_server() -> Cache_Service__Fast_API__Test_Objs:

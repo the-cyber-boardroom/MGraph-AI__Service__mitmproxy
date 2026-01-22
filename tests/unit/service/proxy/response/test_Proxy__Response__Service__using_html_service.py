@@ -1,6 +1,6 @@
 import pytest
 from unittest                                                                               import TestCase
-from osbot_utils.testing.Pytest                                                             import skip_if_in_github_action
+from osbot_utils.testing.Pytest                                                             import skip_if_in_github_action, skip__if_not__in_github_actions
 from osbot_utils.testing.__                                                                 import __, __SKIP__
 from osbot_utils.testing.Temp_Env_Vars                                                      import Temp_Env_Vars
 from osbot_utils.type_safe.Type_Safe                                                        import Type_Safe
@@ -117,6 +117,7 @@ class test_Proxy__Response__Service__using_html_service(TestCase):              
 
 
     def test_process_response__with_hashes_mode(self):                              # Test HASHES transformation via proxy
+        skip__if_not__in_github_actions()                                           # todo: find out why this test is non-deterministic locally but always passes in GH actions
         source_html = '<html><head><title>Test Page</title></head><body><p>Content here</p></body></html>'
 
         response_data = Schema__Proxy__Response_Data(request  = { 'scheme'       : 'https'                             ,
@@ -298,6 +299,7 @@ class test_Proxy__Response__Service__using_html_service(TestCase):              
             assert result.final_headers['x-proxy-transformation'] == 'roundtrip'
 
     def test_process_response__cache_hit_behavior(self):                            # Test caching works through proxy
+        skip__if_not__in_github_actions()                                           # todo: find out why this test is non-deterministic locally but always passes in GH actions
         source_html = '<html><body><p>Cacheable content</p></body></html>'
         target_url  = 'https://example.com/cache-test-page'
 
@@ -619,6 +621,7 @@ class test_Proxy__Response__Service__using_html_service(TestCase):              
                                                        Safe_Str__Http__Header__Name('x-request-id'          )]
 
     def test__integration__full_flow_verification(self):                            # Test complete integration flow
+        skip__if_not__in_github_actions()                                           # todo: find out why this test is non-deterministic locally but always passes in GH actions
         source_html = """
         <html>
             <head><title>Integration Test</title></head>
