@@ -1,15 +1,21 @@
 import pytest
-from unittest                                          import TestCase
-from osbot_utils.testing.__                            import __
-from osbot_utils.testing.__helpers                     import obj
-from osbot_utils.utils.Json                            import str_to_json
-from tests.unit.Mitmproxy_Service__Fast_API__Test_Objs import setup__service_fast_api_test_objs, TEST_API_KEY__NAME, TEST_API_KEY__VALUE
+from unittest                                           import TestCase
+from osbot_fast_api.api.schemas.consts.consts__Fast_API import ENV_VAR__FAST_API__AUTH__API_KEY__NAME, ENV_VAR__FAST_API__AUTH__API_KEY__VALUE
+from osbot_utils.testing.Temp_Env_Vars                  import Temp_Env_Vars
+from osbot_utils.testing.__                             import __
+from osbot_utils.testing.__helpers                      import obj
+from osbot_utils.utils.Json                             import str_to_json
+from tests.unit.Mitmproxy_Service__Fast_API__Test_Objs  import setup__service_fast_api_test_objs, TEST_API_KEY__NAME, TEST_API_KEY__VALUE
 
 
 class test_Routes__Proxy__Cookies__client(TestCase):                                         # Test cookie-based proxy control via FastAPI TestClient
 
     @classmethod
     def setUpClass(cls):
+        env_vars = { ENV_VAR__FAST_API__AUTH__API_KEY__NAME        : TEST_API_KEY__NAME         ,
+                     ENV_VAR__FAST_API__AUTH__API_KEY__VALUE       : TEST_API_KEY__VALUE        }
+        cls.temp_env_vars = Temp_Env_Vars(env_vars=env_vars).set_vars()
+
         cls.test_objs = setup__service_fast_api_test_objs()
         cls.client    = cls.test_objs.fast_api__client
         cls.app       = cls.test_objs.fast_api__app
@@ -28,13 +34,20 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
             'version'      : 'v1.0.0'
         }
 
+    @classmethod
+    def tearDownClass(cls):
+        cls.temp_env_vars.restore_vars()
+
+    def auth_headers(self):
+        return {TEST_API_KEY__NAME: TEST_API_KEY__VALUE}
+
     def test__health_check(self):                                                             # Verify API is accessible
         response = self.client.get('/info/health')
         assert response.status_code == 200
         assert response.json()       == {'status': 'ok'}
 
     def test__process_request__no_cookies(self):                                              # Test request processing without cookies
-        response = self.client.post('/proxy/process-request', json=self.test_request_body)
+        response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=self.test_request_body)
 
         assert response.status_code == 200
         result = response.json()
@@ -48,7 +61,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
         request_body = self.test_request_body.copy()
         request_body['headers'] = {'cookie': 'mitm-show=url-to-html'}
 
-        response = self.client.post('/proxy/process-request', json=request_body)
+        response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
         assert response.status_code == 200
         result = response.json()
@@ -60,7 +73,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
         request_body = self.test_request_body.copy()
         request_body['headers'] = {'cookie': 'mitm-debug=true'}
 
-        response = self.client.post('/proxy/process-request', json=request_body)
+        response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
         assert response.status_code == 200
         result = response.json()
@@ -78,7 +91,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
             'cookie': 'mitm-show=url-to-html; mitm-debug=true; mitm-inject=debug-panel; mitm-rating=0.5'
         }
 
-        response = self.client.post('/proxy/process-request', json=request_body)
+        response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
         assert response.status_code == 200
         result = response.json()
@@ -97,7 +110,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
         request_body['headers']      = {'cookie': 'mitm-show=url-to-html'}                   # Cookie value
         request_body['debug_params'] = {'show': 'url-to-text'}                               # Query param value
 
-        response = self.client.post('/proxy/process-request', json=request_body)
+        response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
         assert response.status_code == 200
         result = response.json()
@@ -110,7 +123,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
         request_body = self.test_request_body.copy()
         request_body['headers'] = {'cookie': 'mitm-cache=true'}
 
-        response = self.client.post('/proxy/process-request', json=request_body)
+        response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
         assert response.status_code == 200
         result = response.json()
@@ -123,7 +136,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
         request_body = self.test_request_body.copy()
         request_body['headers'] = {'cookie': 'mitm-rating=0.7'}
 
-        response = self.client.post('/proxy/process-request', json=request_body)
+        response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
         assert response.status_code == 200
         result = response.json()
@@ -136,7 +149,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
         request_body = self.test_request_body.copy()
         request_body['headers'] = {'cookie': 'mitm-model=gpt-4'}
 
-        response = self.client.post('/proxy/process-request', json=request_body)
+        response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
         assert response.status_code == 200
         result = response.json()
@@ -149,7 +162,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
         request_body = self.test_request_body.copy()
         request_body['headers'] = {'cookie': 'mitm-replace=Hello:Hi'}
 
-        response = self.client.post('/proxy/process-request', json=request_body)
+        response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
         assert response.status_code == 200
         result = response.json()
@@ -162,7 +175,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
         request_body = self.test_request_body.copy()
         request_body['headers'] = {'cookie': 'mitm-inject=debug-panel'}
 
-        response = self.client.post('/proxy/process-request', json=request_body)
+        response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
         assert response.status_code == 200
         result = response.json()
@@ -177,7 +190,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
             'cookie': 'session=abc123; mitm-show=url-to-html; user=john; mitm-debug=true; theme=dark'
         }
 
-        response = self.client.post('/proxy/process-request', json=request_body)
+        response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
         assert response.status_code == 200
         result = response.json()
@@ -209,7 +222,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
                 request_body = self.test_request_body.copy()
                 request_body['headers'] = {'cookie': f'mitm-show={command}'}
 
-                response = self.client.post('/proxy/process-request', json=request_body)
+                response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
                 assert response.status_code == 200
                 result = response.json()
@@ -227,7 +240,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
                 request_body = self.test_request_body.copy()
                 request_body['headers'] = {'cookie': f'mitm-debug={value}'}
 
-                response = self.client.post('/proxy/process-request', json=request_body)
+                response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
                 assert response.status_code == 200
                 result = response.json()
@@ -252,7 +265,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
                 request_body = self.test_request_body.copy()
                 request_body['headers'] = {'cookie': f'mitm-rating={value}'}
 
-                response = self.client.post('/proxy/process-request', json=request_body)
+                response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
                 assert response.status_code == 200
                 result = response.json()
@@ -272,7 +285,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
                 request_body = self.test_request_body.copy()
                 request_body['headers'] = headers
 
-                response = self.client.post('/proxy/process-request', json=request_body)
+                response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
                 assert response.status_code == 200
                 result = response.json()
@@ -282,7 +295,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
         request_body = self.test_request_body.copy()
         request_body['headers'] = {'cookie': ''}
 
-        response = self.client.post('/proxy/process-request', json=request_body)
+        response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
         assert response.status_code == 200
         result = response.json()
@@ -292,7 +305,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
         request_body = self.test_request_body.copy()
         request_body['headers'] = {'cookie': 'mitm-show'}                                     # Missing value
 
-        response = self.client.post('/proxy/process-request', json=request_body)
+        response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
         assert response.status_code == 200                                                    # Should not crash
 
@@ -315,7 +328,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
             'version' : 'v1.0.0'
         }
 
-        response = self.client.post('/proxy/process-response', json=response_body)
+        response = self.client.post('/proxy/process-response', headers=self.auth_headers(), json=response_body)
 
         assert response.status_code == 200
         result = response.json()
@@ -349,7 +362,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
             'version' : 'v1.0.0'
         }
 
-        response = self.client.post('/proxy/process-response', json=response_body)
+        response = self.client.post('/proxy/process-response', headers=self.auth_headers(), json=response_body)
 
         assert response.status_code == 200
         result = response.json()
@@ -379,7 +392,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
             'version' : 'v1.0.0'
         }
 
-        response = self.client.post('/proxy/process-response', json=response_body)
+        response = self.client.post('/proxy/process-response', headers=self.auth_headers(), json=response_body)
 
         assert response.status_code == 200
         result = response.json()
@@ -401,7 +414,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
             request_body = self.test_request_body.copy()
             request_body['headers'] = {'cookie': cookies}
 
-            response = self.client.post('/proxy/process-request', json=request_body)
+            response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
             assert response.status_code == 200
 
         elapsed = time.time() - start_time
@@ -411,7 +424,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
         request_body = self.test_request_body.copy()
         request_body['headers'] = {'cookie': 'mitm-replace=Hello:Hi%20There'}
 
-        response = self.client.post('/proxy/process-request', json=request_body)
+        response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
         assert response.status_code == 200
         result = response.json()
@@ -424,7 +437,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
         request_body = self.test_request_body.copy()
         request_body['headers'] = {'cookie': 'mitm-replace=Hello:你好'}
 
-        response = self.client.post('/proxy/process-request', json=request_body)
+        response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
         assert response.status_code == 200                                                    # Should handle gracefully
 
@@ -433,7 +446,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
         request_body = self.test_request_body.copy()
         request_body['headers'] = {'cookie': f'mitm-model={long_value}'}
 
-        response = self.client.post('/proxy/process-request', json=request_body)
+        response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
         assert response.status_code == 200
         result = response.json()
@@ -445,7 +458,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
     def test__process_request__not__auth_required(self):                                      # Confirm that auth is currently not enabled
         auth_header = self.client.headers.pop(TEST_API_KEY__NAME)                             # Remove auth temporarily
 
-        response = self.client.post('/proxy/process-request', json=self.test_request_body)
+        response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=self.test_request_body)
         assert response.status_code != 401
         assert response.status_code == 200
 
@@ -455,7 +468,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
         request_body = self.test_request_body.copy()
         request_body['headers'] = {'cookie': 'mitm-show=url-to-html; mitm-debug=true'}
 
-        response = self.client.post('/proxy/process-request', json=request_body)
+        response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
         assert response.status_code == 200
         result = response.json()

@@ -1,13 +1,14 @@
 import requests
-from unittest                                                                        import TestCase
-from osbot_utils.helpers.duration.decorators.print_duration                          import print_duration
-from osbot_utils.testing.__                                                          import __, __SKIP__
-from osbot_utils.testing.Temp_Env_Vars                                               import Temp_Env_Vars
-from osbot_utils.testing.__helpers                                                   import obj
-from osbot_utils.utils.Http                                                          import GET_json
-from tests.unit.Mitmproxy_Service__Fast_API__Test_Objs                               import (get__cache_service__fast_api_server,
-                                                                                             get__html_service__fast_api_server,
-                                                                                             get__mitmproxy_service__fast_api_server)
+from unittest                                                   import TestCase
+from osbot_fast_api.api.schemas.consts.consts__Fast_API         import ENV_VAR__FAST_API__AUTH__API_KEY__NAME, ENV_VAR__FAST_API__AUTH__API_KEY__VALUE
+from osbot_utils.helpers.duration.decorators.print_duration     import print_duration
+from osbot_utils.testing.__                                     import __, __SKIP__
+from osbot_utils.testing.Temp_Env_Vars                          import Temp_Env_Vars
+from osbot_utils.testing.__helpers                              import obj
+from osbot_utils.utils.Http                                     import GET_json
+from tests.unit.Mitmproxy_Service__Fast_API__Test_Objs          import (get__cache_service__fast_api_server,
+                                                                        get__html_service__fast_api_server,
+                                                                        get__mitmproxy_service__fast_api_server, TEST_API_KEY__NAME, TEST_API_KEY__VALUE)
 
 
 class test_Routes__Proxy__html_transformation__http(TestCase):                 # Test HTML transformation workflow via HTTP requests
@@ -25,7 +26,9 @@ class test_Routes__Proxy__html_transformation__http(TestCase):                 #
                 cls.cache_service_base_url = _.server_url
 
             env_vars = { 'AUTH__TARGET_SERVER__HTML_SERVICE__BASE_URL' : cls.html_service_base_url  ,
-                         'AUTH__TARGET_SERVER__CACHE_SERVICE__BASE_URL': cls.cache_service_base_url }
+                         'AUTH__TARGET_SERVER__CACHE_SERVICE__BASE_URL': cls.cache_service_base_url ,
+                         ENV_VAR__FAST_API__AUTH__API_KEY__NAME        : TEST_API_KEY__NAME         ,
+                         ENV_VAR__FAST_API__AUTH__API_KEY__VALUE       : TEST_API_KEY__VALUE        }
             cls.temp_env_vars = Temp_Env_Vars(env_vars=env_vars).set_vars()
 
             with get__mitmproxy_service__fast_api_server() as _:
@@ -46,10 +49,13 @@ class test_Routes__Proxy__html_transformation__http(TestCase):                 #
             cls.mitmproxy_service_server.stop()
             cls.temp_env_vars.restore_vars()
 
+    def auth_headers(self):
+        return {TEST_API_KEY__NAME: TEST_API_KEY__VALUE}
+
     def test__fast_api__servers(self):                                          # Verify all servers running
-        assert GET_json(self.html_service_base_url      + '/info/health') == {'status': 'ok'}
-        assert GET_json(self.cache_service_base_url     + '/info/health') == {'status': 'ok'}
-        assert GET_json(self.mitmproxy_service_base_url + '/info/health') == {'status': 'ok'}
+        assert GET_json(self.html_service_base_url      + '/info/health', headers=self.auth_headers()) == {'status': 'ok'}
+        assert GET_json(self.cache_service_base_url     + '/info/health', headers=self.auth_headers()) == {'status': 'ok'}
+        assert GET_json(self.mitmproxy_service_base_url + '/info/health', headers=self.auth_headers()) == {'status': 'ok'}
 
     def test__process_response__no_html_transformation(self):                  # Test response processing WITHOUT mitm-mode cookie via HTTP
         request_body = { 'request' : { 'method'  : 'GET'                                ,
@@ -63,7 +69,9 @@ class test_Routes__Proxy__html_transformation__http(TestCase):                 #
                           'stats'   : {}                                                 ,
                           'version' : 'v1.0.0'                                           }
 
-        response = requests.post(self.mitmproxy_service_base_url + '/proxy/process-response', json=request_body)
+        response = requests.post(self.mitmproxy_service_base_url + '/proxy/process-response',
+                                 headers=self.auth_headers(),
+                                 json=request_body)
         result   = response.json()
 
         assert 'headers_to_add'             in result
@@ -101,7 +109,7 @@ class test_Routes__Proxy__html_transformation__http(TestCase):                 #
                           'stats'   : {}                                                 ,
                           'version' : 'v1.0.0'                                           }
 
-        response = requests.post(self.mitmproxy_service_base_url + '/proxy/process-response', json=request_body)
+        response = requests.post(self.mitmproxy_service_base_url + '/proxy/process-response', headers=self.auth_headers() , json=request_body)
         result   = response.json()
 
         assert result['modified_body'] is None                                  # OFF mode = no transformation
@@ -120,7 +128,7 @@ class test_Routes__Proxy__html_transformation__http(TestCase):                 #
                           'stats'   : {}                                                 ,
                           'version' : 'v1.0.0'                                           }
 
-        response = requests.post(self.mitmproxy_service_base_url + '/proxy/process-response', json=request_body)
+        response = requests.post(self.mitmproxy_service_base_url + '/proxy/process-response', headers=self.auth_headers(), json=request_body)
         result   = response.json()
 
 
@@ -179,7 +187,7 @@ class test_Routes__Proxy__html_transformation__http(TestCase):                 #
                           'stats'   : {}                                                 ,
                           'version' : 'v1.0.0'                                           }
 
-        response = requests.post(self.mitmproxy_service_base_url + '/proxy/process-response', json=response_body)
+        response = requests.post(self.mitmproxy_service_base_url + '/proxy/process-response', headers=self.auth_headers() , json=response_body)
         result   = response.json()
 
 
@@ -241,7 +249,7 @@ class test_Routes__Proxy__html_transformation__http(TestCase):                 #
                           'stats'   : {}                                                 ,
                           'version' : 'v1.0.0'                                           }
 
-        response = requests.post(self.mitmproxy_service_base_url + '/proxy/process-response', json=response_body)
+        response = requests.post(self.mitmproxy_service_base_url + '/proxy/process-response', headers=self.auth_headers() , json=response_body)
         result   = response.json()
 
 
