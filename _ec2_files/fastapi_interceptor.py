@@ -6,6 +6,7 @@ Control via cookies only (mitm-* cookies)
 """
 import json
 import asyncio
+import os
 from urllib.parse   import urlparse
 from pathlib        import Path
 from datetime       import datetime
@@ -20,7 +21,6 @@ from concurrent.futures import ThreadPoolExecutor
 # Configuration
 #FASTAPI_BASE_URL = "https://mitmproxy-api.dev.mgraph.ai"            # use when deploying to AWS EC2
 # on local docker use this (note: at the moment this is done manually during development)
-FASTAPI_BASE_URL  = "http://host.docker.internal:10016"     # todo: make this work with env vars
 
 REQUEST_ENDPOINT     = "/proxy/process-request"
 RESPONSE_ENDPOINT    = "/proxy/process-response"
@@ -35,6 +35,13 @@ errors_count = 0
 # Thread pool for non-blocking HTTP calls
 executor = ThreadPoolExecutor(max_workers=10)
 
+# Mitmproxy API server
+FASTAPI_BASE_URL      = os.environ.get('FASTAPI_BASE_URL') #"http://host.docker.internal:10016"
+FASTAPI_API_KEY_NAME  = os.environ.get('FASTAPI_API_KEY_NAME' )
+FASTAPI_API_KEY_VALUE = os.environ.get('FASTAPI_API_KEY_VALUE')
+
+FASTAPI_HEADERS = {'content-type'       : 'application/json'   ,
+                   FASTAPI_API_KEY_NAME : FASTAPI_API_KEY_VALUE}
 
 def call_fastapi_sync(endpoint: str, data: dict) -> dict:
     """Synchronous FastAPI call for use in thread pool"""
@@ -42,7 +49,7 @@ def call_fastapi_sync(endpoint: str, data: dict) -> dict:
 
     try:
         json_data = json.dumps(data).encode('utf-8')
-        req = urllib.request.Request(url, data=json_data, headers={'content-type': 'application/json'})
+        req = urllib.request.Request(url, data=json_data, headers=FASTAPI_HEADERS )
 
         with urllib.request.urlopen(req, timeout=TIMEOUT) as response:
             if response.status == 200:

@@ -90,10 +90,6 @@ class HTML_Graph__Service__Client(Type_Safe):                                   
         else:                                                                   # Use requests for production
             import requests
             full_url = f"{self.base_url}{endpoint}"
-            print('****************')
-            print(full_url)
-            print(json_data)
-            print('****************')
             response = requests.post(url     = full_url            ,
                                      headers = headers             ,
                                      json    = json_data           ,

@@ -1,3 +1,5 @@
+from osbot_utils.utils.Env import load_dotenv, get_env
+
 import mgraph_ai_service_mitmproxy
 from osbot_utils.type_safe.primitives.domains.network.safe_uint.Safe_UInt__Port  import Safe_UInt__Port
 from osbot_docker.apis.API_Docker                                                import API_Docker
@@ -9,6 +11,7 @@ from osbot_utils.utils.Misc                                                     
 from mgraph_ai_service_mitmproxy.schemas.docker.Safe_Str__Docker__Container_Name import Safe_Str__Docker__Container_Name
 from mgraph_ai_service_mitmproxy.schemas.docker.Safe_Str__Docker__Image_Name     import Safe_Str__Docker__Image_Name
 from mgraph_ai_service_mitmproxy.schemas.docker.Safe_Str__Docker__Tag            import Safe_Str__Docker__Tag
+from tests.integration.service import mitmproxy
 
 MITMPROXY__PYTHON_FILE = 'fastapi_interceptor.py' # 'add_header.py' #
 
@@ -78,6 +81,13 @@ RUN cd /home/mitmproxy && \
 
         # Create Dockerfile - FIXED INDENTATION HERE
         confdir_setting = '"--set", "confdir=/home/mitmproxy/certs/.mitmproxy", ' if include_certificates else ''
+
+        dotenv__file = path_combine(mitmproxy.path,'.build.env')
+        load_dotenv(dotenv_path=dotenv__file, override=True)
+        FASTAPI_BASE_URL      = get_env('FASTAPI_BASE_URL'     )# 'http://host.docker.internal:10016/aaaa'
+        FASTAPI_API_KEY_NAME  = get_env('FASTAPI_API_KEY_NAME' )
+        FASTAPI_API_KEY_VALUE = get_env('FASTAPI_API_KEY_VALUE')
+
         dockerfile_content = f"""\
 FROM mitmproxy/mitmproxy:latest
 
@@ -88,8 +98,9 @@ COPY {MITMPROXY__PYTHON_FILE} /home/mitmproxy/{MITMPROXY__PYTHON_FILE}
 {cert_commands}
 
 # Set environment variables for FastAPI connection
-ENV FASTAPI_BASE_URL=http://host.docker.internal:10016
-ENV FASTAPI_API_KEY=your-secret-key-here
+ENV FASTAPI_BASE_URL={FASTAPI_BASE_URL}
+ENV FASTAPI_API_KEY_NAME={FASTAPI_API_KEY_NAME}
+ENV FASTAPI_API_KEY_VALUE={FASTAPI_API_KEY_VALUE}
 
 
 # Set working directory
