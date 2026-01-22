@@ -259,18 +259,18 @@ class StageTab extends BaseComponent {
         const clean = JSON.parse(JSON.stringify(output));
         
         // Remove body fields but indicate their presence
-        if (clean.body) {
-            clean.body = `[${clean.body.length} chars]`;
-        }
-        if (clean.modified_body) {
-            clean.modified_body = `[${clean.modified_body.length} chars]`;
-        }
-        if (clean.response?.body) {
-            clean.response.body = `[${clean.response.body.length} chars]`;
-        }
-        if (clean.response?.modified_body) {
-            clean.response.modified_body = `[${clean.response.modified_body.length} chars]`;
-        }
+        // if (clean.body) {
+        //     clean.body = `[${clean.body.length} chars]`;
+        // }
+        // if (clean.modified_body) {
+        //     clean.modified_body = `[${clean.modified_body.length} chars]`;
+        // }
+        // if (clean.response?.body) {
+        //     clean.response.body = `[${clean.response.body.length} chars]`;
+        // }
+        // if (clean.response?.modified_body) {
+        //     clean.response.modified_body = `[${clean.response.modified_body.length} chars]`;
+        // }
         
         return clean;
     }
