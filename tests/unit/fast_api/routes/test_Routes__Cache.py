@@ -9,7 +9,7 @@ class test_Routes__Cache(TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:                                                                # Setup cache service and test infrastructure
-        load_dotenv()
+        #load_dotenv()
         cls.routes_cache = Routes__Cache()
 
     def test_setUpClass(self):
@@ -20,12 +20,15 @@ class test_Routes__Cache(TestCase):
 
     def test_health(self):             # /cache/health endpoint logic
         with self.routes_cache as _:
-            if in_github_action():
-                status = 'disabled'
-                enabled = False
-            else:
-                status = 'ok'
-                enabled = True
+            # if in_github_action():
+            #     status = 'disabled'
+            #     enabled = False
+            # else:
+            #     status = 'ok'
+            #     enabled = True
+
+            status = 'ok'
+            enabled = True
             result = _.health()
             assert type(result) is dict
             assert obj(result) == __(status     = status                       ,

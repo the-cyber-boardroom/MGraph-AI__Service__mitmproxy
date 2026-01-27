@@ -29,7 +29,13 @@ class Proxy__Service(Type_Safe):                                      # Main pro
                          ) -> Schema__Proxy__Modifications:
         self.log_response(response_data)
         processing_result = self.response_service.process_response(response_data)           # Convert processing result to modifications
+
         return processing_result.modifications
+
+        if type(processing_result) is Type_Safe:                # todo: handle bug that happened here (when using the simulate-ui)
+            return processing_result.modifications
+        else:
+            return None
 
     def get_stats(self) -> Dict[str, Any]:                           # Get current statistics
         return self.stats_service.get_stats()

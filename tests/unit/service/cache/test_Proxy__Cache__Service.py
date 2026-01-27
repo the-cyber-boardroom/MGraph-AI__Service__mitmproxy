@@ -4,7 +4,7 @@ from osbot_utils.helpers.cache.Cache__Hash__Generator                           
 from osbot_utils.helpers.duration.decorators.capture_duration                                       import capture_duration
 from osbot_utils.testing.__                                                                         import __, __SKIP__
 from osbot_utils.type_safe.primitives.core.Safe_UInt                                                import Safe_UInt
-from osbot_utils.utils.Misc                                                                         import list_set, is_guid
+from osbot_utils.utils.Misc                                                                         import is_guid
 from osbot_utils.testing.__helpers                                                                  import obj
 from mgraph_ai_service_mitmproxy.service.cache.Proxy__Cache__Service                                import Proxy__Cache__Service
 from mgraph_ai_service_mitmproxy.service.cache.schemas.Schema__Cache__Config                        import Schema__Cache__Config

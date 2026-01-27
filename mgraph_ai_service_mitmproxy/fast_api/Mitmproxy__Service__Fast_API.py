@@ -1,19 +1,17 @@
-from mgraph_ai_service_html_graph.client.register_html_graph_service import register_html_graph_service__in_memory
-
-from mgraph_ai_service_cache_client.client.cache_service.register_cache_service import register_cache_service__in_memory
-from osbot_fast_api.core_routes.registry.Routes__Service__Registry import Routes__Service__Registry
-
 import mgraph_ai_service_mitmproxy__console
-from osbot_fast_api.api.decorators.route_path                   import route_path
-from osbot_fast_api.api.routes.Routes__Set_Cookie               import Routes__Set_Cookie
-from osbot_fast_api_serverless.fast_api.Serverless__Fast_API    import Serverless__Fast_API
-from starlette.responses                                        import RedirectResponse
-from starlette.staticfiles                                      import StaticFiles
-from mgraph_ai_service_mitmproxy.config                         import FAST_API__TITLE, MITMPROXY__SERVICE__WEB_CONSOLE__PATH, MITMPROXY__SERVICE__WEB_CONSOLE__MAJOR__VERSION, MITMPROXY__SERVICE__WEB_CONSOLE__LATEST__VERSION, MITMPROXY__SERVICE__WEB_CONSOLE__ROUTE__START_PAGE
-from mgraph_ai_service_mitmproxy.fast_api.routes.Routes__Cache  import Routes__Cache
-from mgraph_ai_service_mitmproxy.fast_api.routes.Routes__Proxy  import Routes__Proxy
-from mgraph_ai_service_mitmproxy.utils.Version                  import version__mgraph_ai_service_mitmproxy
-from osbot_fast_api_serverless.fast_api.routes.Routes__Info     import Routes__Info
+from mgraph_ai_service_html_graph.client.register_html_graph_service            import register_html_graph_service__in_memory
+from mgraph_ai_service_cache_client.client.cache_service.register_cache_service import register_cache_service__in_memory
+from osbot_fast_api.core_routes.registry.Routes__Service__Registry              import Routes__Service__Registry
+from osbot_fast_api.api.decorators.route_path                                   import route_path
+from osbot_fast_api.api.routes.Routes__Set_Cookie                               import Routes__Set_Cookie
+from osbot_fast_api_serverless.fast_api.Serverless__Fast_API                    import Serverless__Fast_API
+from starlette.responses                                                        import RedirectResponse
+from starlette.staticfiles                                                      import StaticFiles
+from mgraph_ai_service_mitmproxy.config                                         import FAST_API__TITLE, MITMPROXY__SERVICE__WEB_CONSOLE__PATH, MITMPROXY__SERVICE__WEB_CONSOLE__MAJOR__VERSION, MITMPROXY__SERVICE__WEB_CONSOLE__LATEST__VERSION, MITMPROXY__SERVICE__WEB_CONSOLE__ROUTE__START_PAGE
+from mgraph_ai_service_mitmproxy.fast_api.routes.Routes__Cache                  import Routes__Cache
+from mgraph_ai_service_mitmproxy.fast_api.routes.Routes__Proxy                  import Routes__Proxy
+from mgraph_ai_service_mitmproxy.utils.Version                                  import version__mgraph_ai_service_mitmproxy
+from osbot_fast_api_serverless.fast_api.routes.Routes__Info                     import Routes__Info
 
 class Mitmproxy__Service__Fast_API(Serverless__Fast_API):
     run_in_memory : bool = True                                 # todo: find a better place to put this option

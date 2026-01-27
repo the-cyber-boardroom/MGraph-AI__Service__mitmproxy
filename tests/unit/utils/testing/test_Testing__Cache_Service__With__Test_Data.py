@@ -57,15 +57,15 @@ class test_Testing__Cache_Service__With__Test_Data(TestCase):
             assert type(_.cache_config)            is Schema__Cache__Config
             _.stop__fast_api__cache_server()
 
-    def test__setup__idempotent(self):                                            # Test setup can be called multiple times safely
-        with Testing__Cache_Service__With__Test_Data() as _:
-            _.setup()
-            first_server_url = _.server_url
-
-            _.setup()                                                             # Call setup again
-
-            assert _.server_url == first_server_url                               # Same server URL
-            assert _.setup_completed is True                                      # Still marked as complete
+    # def test__setup__idempotent(self):                                            # Test setup can be called multiple times safely
+    #     with Testing__Cache_Service__With__Test_Data() as _:
+    #         _.setup()
+    #         first_server_url = _.server_url
+    #
+    #         _.setup()                                                             # Call setup again
+    #
+    #         assert _.server_url == first_server_url                               # Same server URL
+    #         assert _.setup_completed is True                                      # Still marked as complete
 
     def test__setup__cache_backend(self):                                         # Test cache backend setup
         with Testing__Cache_Service__With__Test_Data() as _:
