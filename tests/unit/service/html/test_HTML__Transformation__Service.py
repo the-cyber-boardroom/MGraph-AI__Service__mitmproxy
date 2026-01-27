@@ -1,4 +1,6 @@
 from unittest                                                                       import TestCase
+
+from mgraph_ai_service_cache_client.client.cache_service.register_cache_service import register_cache_service__in_memory
 from osbot_utils.helpers.duration.decorators.print_duration                         import print_duration
 from osbot_utils.testing.Pytest import skip_if_in_github_action
 from osbot_utils.type_safe.primitives.domains.web.safe_str.Safe_Str__Html           import Safe_Str__Html
@@ -24,24 +26,27 @@ class test_HTML__Transformation__Service(TestCase):
     @classmethod
     def setUpClass(cls):                                                            # ONE-TIME setup: start all services
         with print_duration(action_name='start 3 FastAPI servers'):
+
+            register_cache_service__in_memory()                         # todo: add in memory cache support to the other services (used below)
+
             with get__html_service__fast_api_server() as _:
                 cls.html_service_server   = _.fast_api_server
                 cls.html_service_base_url = _.server_url
 
-            with get__cache_service__fast_api_server() as _:
-                cls.cache_service_server   = _.fast_api_server
-                cls.cache_service_base_url = _.server_url
+            # with get__cache_service__fast_api_server() as _:
+            #     cls.cache_service_server   = _.fast_api_server
+            #     cls.cache_service_base_url = _.server_url
 
             with get__semantic_text_service__fast_api_server() as _:              # NEW: Semantic Text Service
                 cls.semantic_text_service_server   = _.fast_api_server
                 cls.semantic_text_service_base_url = _.server_url
 
             cls.html_service_server.start()                                         # Start all servers
-            cls.cache_service_server.start()
+            #cls.cache_service_server.start()
             cls.semantic_text_service_server.start()
 
             env_vars = { 'AUTH__TARGET_SERVER__HTML_SERVICE__BASE_URL'         : cls.html_service_base_url          ,
-                         'AUTH__TARGET_SERVER__CACHE_SERVICE__BASE_URL'        : cls.cache_service_base_url         ,
+                         #'AUTH__TARGET_SERVER__CACHE_SERVICE__BASE_URL'        : cls.cache_service_base_url         ,
                          'AUTH__TARGET_SERVER__SEMANTIC_TEXT_SERVICE__BASE_URL': cls.semantic_text_service_base_url }
             cls.temp_env_vars = Temp_Env_Vars(env_vars=env_vars).set_vars()
             cls.html_transformation_service = HTML__Transformation__Service().setup()
@@ -49,13 +54,13 @@ class test_HTML__Transformation__Service(TestCase):
     @classmethod
     def tearDownClass(cls):                                                         # Stop all servers
         cls.html_service_server.stop()
-        cls.cache_service_server.stop()
+        #cls.cache_service_server.stop()
         cls.semantic_text_service_server.stop()                                     # NEW
         cls.temp_env_vars.restore_vars()
 
     def test__fast_api__servers(self):                                              # Verify all servers running
         assert GET_json(self.html_service_base_url          + '/info/health') == {'status': 'ok'}
-        assert GET_json(self.cache_service_base_url         + '/info/health') == {'status': 'ok'}
+        #assert GET_json(self.cache_service_base_url         + '/info/health') == {'status': 'ok'}
         assert GET_json(self.semantic_text_service_base_url + '/info/health') == {'status': 'ok'}  # NEW
 
         with self.html_transformation_service as _:
@@ -63,7 +68,7 @@ class test_HTML__Transformation__Service(TestCase):
             assert type(_.cache_service        ) is Proxy__Cache__Service
             assert _.semantic_text_client       is not None                         # NEW
 
-        assert self.html_service_server.port != self.cache_service_server        .port      # make sure all ports are different
+        #assert self.html_service_server.port != self.cache_service_server        .port      # make sure all ports are different
         assert self.html_service_server.port != self.semantic_text_service_server.port
 
 
@@ -82,8 +87,8 @@ class test_HTML__Transformation__Service(TestCase):
             assert _.cache_service                              is not None
             assert _.html_service_client.base_url               == self.html_service_base_url
             assert _.semantic_text_client.server_base_url()     == self.semantic_text_service_base_url  # NEW
-            assert _.cache_service.cache_config.base_url        == self.cache_service_base_url
-            assert _.cache_service.cache_client.config.base_url == self.cache_service_base_url
+            #assert _.cache_service.cache_config.base_url        == self.cache_service_base_url
+            #assert _.cache_service.cache_client.config.base_url == self.cache_service_base_url
 
     def test_transform_html__mode_off(self):                                        # Test transformation with OFF mode (passthrough)
         with HTML__Transformation__Service() as _:

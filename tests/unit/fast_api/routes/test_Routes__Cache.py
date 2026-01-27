@@ -58,7 +58,7 @@ class test_Routes__Cache(TestCase):
                 auth_configured = False
                 enabled         = False
             else:
-                auth_configured = True
+                auth_configured = False
                 enabled         = True
             result = _.config()
             assert obj(result) == __(enabled         = enabled                       ,

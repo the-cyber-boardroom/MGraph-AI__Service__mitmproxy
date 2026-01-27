@@ -30,7 +30,7 @@ class HTML__Transformation__Service(Type_Safe):                                 
     def setup(self) -> 'HTML__Transformation__Service':                                      # Initialize service dependencies
         self.html_service_client  = HTML__Service__Client().setup()
         self.semantic_text_client = Semantic_Text__Service__Client()
-        self.cache_service        = Proxy__Cache__Service().setup()
+        self.cache_service        = Proxy__Cache__Service()#.setup()
         return self
 
     def transform_html(self, source_html   : str                                  ,          # Source HTML content

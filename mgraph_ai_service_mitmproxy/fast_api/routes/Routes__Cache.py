@@ -13,7 +13,7 @@ class Routes__Cache(Fast_API__Routes):                               # FastAPI r
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.cache_service = Proxy__Cache__Service().setup()
+        self.cache_service = Proxy__Cache__Service()#.setup()
 
     def health(self) -> Dict[str, Any]:                                 # Test cache service connection
         enabled = self.cache_service.cache_config.enabled

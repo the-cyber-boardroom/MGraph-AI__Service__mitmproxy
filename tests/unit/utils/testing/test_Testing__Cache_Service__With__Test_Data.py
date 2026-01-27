@@ -1,10 +1,10 @@
 from unittest                                                                            import TestCase
 from mgraph_ai_service_cache.fast_api.Cache_Service__Fast_API                            import Cache_Service__Fast_API
+from mgraph_ai_service_cache_client.client.cache_client.Cache__Service__Client           import Cache__Service__Client
 from osbot_utils.utils.Objects                                                           import base_classes
 from osbot_utils.type_safe.Type_Safe                                                     import Type_Safe
 from osbot_utils.type_safe.primitives.domains.web.safe_str.Safe_Str__Url                 import Safe_Str__Url
 from mgraph_ai_service_mitmproxy.service.cache.Proxy__Cache__Service                     import Proxy__Cache__Service
-from mgraph_ai_service_cache_client.client.client_contract.Cache__Service__Fast_API__Client            import Cache__Service__Fast_API__Client
 from osbot_fast_api.utils.Fast_API_Server                                                import Fast_API_Server
 from mgraph_ai_service_mitmproxy.service.cache.schemas.Schema__Cache__Config             import Schema__Cache__Config
 from mgraph_ai_service_mitmproxy.utils.testing.Testing__Cache_Service__With__Test_Data   import setup__testing__cache_service__with__test_data, Testing__Cache_Service__With__Test_Data, testing__cache_service__with__test_data
@@ -50,7 +50,7 @@ class test_Testing__Cache_Service__With__Test_Data(TestCase):
 
             # Verify types are correct
             assert type(_.cache_service)           is Proxy__Cache__Service
-            assert type(_.cache_client)            is Cache__Service__Fast_API__Client
+            assert type(_.cache_client)            is Cache__Service__Client
             assert type(_.cache_service__fast_api) is Cache_Service__Fast_API
             assert type(_.fast_api_server)         is Fast_API_Server
             assert type(_.server_url)              is Safe_Str__Url
@@ -96,7 +96,7 @@ class test_Testing__Cache_Service__With__Test_Data(TestCase):
             _.setup__cache_client()
 
             assert _.cache_client is not None
-            assert type(_.cache_client) is Cache__Service__Fast_API__Client
+            assert type(_.cache_client) is Cache__Service__Client
 
     def test__setup__proxy_cache_service(self):                                   # Test proxy cache service setup
         with Testing__Cache_Service__With__Test_Data() as _:

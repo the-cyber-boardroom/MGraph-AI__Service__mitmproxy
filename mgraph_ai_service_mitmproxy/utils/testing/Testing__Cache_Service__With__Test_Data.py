@@ -3,8 +3,8 @@ from typing                                                                     
 from mgraph_ai_service_cache.fast_api.Cache_Service__Fast_API                                       import Cache_Service__Fast_API
 from mgraph_ai_service_cache.service.cache.Cache__Config                                            import Cache__Config
 from mgraph_ai_service_cache.service.cache.Cache__Service                                           import Cache__Service
-from mgraph_ai_service_cache_client.client.client_contract.Cache__Service__Fast_API__Client         import Cache__Service__Fast_API__Client
-from mgraph_ai_service_cache_client.client.client_contract.Cache__Service__Fast_API__Client__Config import Cache__Service__Fast_API__Client__Config
+from mgraph_ai_service_cache_client.client.cache_client.Cache__Service__Client import Cache__Service__Client
+
 from mgraph_ai_service_cache_client.schemas.cache.enums.Enum__Cache__Storage_Mode                   import Enum__Cache__Storage_Mode
 from osbot_fast_api.utils.Fast_API_Server                                                           import Fast_API_Server
 from osbot_fast_api_serverless.fast_api.Serverless__Fast_API__Config                                import Serverless__Fast_API__Config
@@ -68,9 +68,7 @@ class Testing__Cache_Service__With__Test_Data(Type_Safe):                       
         self.server_url      = self.fast_api_server.url().rstrip("/")
 
     def setup__cache_client(self) -> None:                                        # Setup cache client with server URL
-        client_config    = Cache__Service__Fast_API__Client__Config(base_url     = str(self.server_url),
-                                                                    fast_api_app = self.cache_service__fast_api.app())
-        self.cache_client = Cache__Service__Fast_API__Client(config=client_config)
+        self.cache_client = Cache__Service__Client()
 
     def setup__proxy_cache_service(self) -> None:                                 # Setup proxy cache service with configuration
         self.cache_config = Schema__Cache__Config(enabled   = True               ,

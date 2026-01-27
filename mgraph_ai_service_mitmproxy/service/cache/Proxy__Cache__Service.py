@@ -2,9 +2,11 @@ import re
 import time
 from urllib.parse                                                                                   import urlparse
 from typing                                                                                         import Optional, Dict
-from mgraph_ai_service_cache_client.client.client_contract.Cache__Service__Fast_API__Client         import Cache__Service__Fast_API__Client
-from mgraph_ai_service_cache_client.client.client_contract.Cache__Service__Fast_API__Client__Config import Cache__Service__Fast_API__Client__Config
-from mgraph_ai_service_cache_client.client.requests.schemas.enums.Enum__Client__Mode import Enum__Client__Mode
+
+from osbot_fast_api.services.schemas.registry.enums.Enum__Fast_API__Service__Registry__Client__Mode import Enum__Fast_API__Service__Registry__Client__Mode
+
+from mgraph_ai_service_cache_client.client.cache_client.Cache__Service__Client import Cache__Service__Client
+
 from mgraph_ai_service_cache_client.schemas.consts.consts__Cache_Client                             import ENV_VAR__AUTH__TARGET_SERVER__CACHE_SERVICE__KEY_VALUE
 from osbot_utils.helpers.cache.Cache__Hash__Generator                                               import Cache__Hash__Generator
 from osbot_utils.type_safe.Type_Safe                                                                import Type_Safe
@@ -26,42 +28,42 @@ DEFAULT__TEXT__CACHE_NOT_FOUND = ''                             # this used to b
 PAGE_ENTRY__JSON_FIELD_PATH    = 'cache_key'
 
 class Proxy__Cache__Service(Type_Safe):                                 # Cache service for WCF transformations
-    cache_client      : Cache__Service__Fast_API__Client   = None       # Cache service client (Cache__Service__Fast_API__Client)
-    cache_config      : Schema__Cache__Config              = None       # Configuration
+    cache_client      : Cache__Service__Client                          # Cache service client
+    cache_config      : Schema__Cache__Config                           # Configuration
     stats             : Schema__Cache__Stats                            # Cache statistics
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-
-    def setup(self):
-        self.setup__service_auth()
-        return self
-
-    def setup__service_auth(self):
-        base_url  = get_env(ENV_VAR__AUTH__TARGET_SERVER__CACHE_SERVICE__BASE_URL )
-        key_name  = get_env(ENV_VAR__AUTH__TARGET_SERVER__CACHE_SERVICE__KEY_NAME )
-        key_value = get_env(ENV_VAR__AUTH__TARGET_SERVER__CACHE_SERVICE__KEY_VALUE)
-
-        auth__kwargs = dict(base_url       = base_url                 ,
-                            api_key        = key_value                ,
-                            api_key_header = key_name                 )
-
-        if base_url and key_name and key_value:
-            cache_auth_available = True
-            client_mode          = Enum__Client__Mode.REMOTE
-        else:
-            cache_auth_available = False
-            client_mode          = Enum__Client__Mode.IN_MEMORY
-
-        #cache_enabled        = False # cache_auth_available     # For now disable the cache
-        cache_enabled        = cache_auth_available     # For now disable the cache
-        cache_client__config = Cache__Service__Fast_API__Client__Config(**auth__kwargs, mode=client_mode)
-
-        self.cache_config    = Schema__Cache__Config            (**auth__kwargs, enabled=cache_enabled)
-        self.cache_client    = Cache__Service__Fast_API__Client (config=cache_client__config)
-
-        return self
+    # def __init__(self, **kwargs):
+    #     super().__init__(**kwargs)
+    #
+    #
+    # def setup(self):
+    #     self.setup__service_auth()
+    #     return self
+    #
+    # def setup__service_auth(self):
+    #     base_url  = get_env(ENV_VAR__AUTH__TARGET_SERVER__CACHE_SERVICE__BASE_URL )
+    #     key_name  = get_env(ENV_VAR__AUTH__TARGET_SERVER__CACHE_SERVICE__KEY_NAME )
+    #     key_value = get_env(ENV_VAR__AUTH__TARGET_SERVER__CACHE_SERVICE__KEY_VALUE)
+    #
+    #     auth__kwargs = dict(base_url       = base_url                 ,
+    #                         api_key        = key_value                ,
+    #                         api_key_header = key_name                 )
+    #
+    #     if base_url and key_name and key_value:
+    #         cache_auth_available = True
+    #         client_mode          = Enum__Fast_API__Service__Registry__Client__Mode.REMOTE
+    #     else:
+    #         cache_auth_available = False
+    #         client_mode          = Enum__Fast_API__Service__Registry__Client__Mode.IN_MEMORY
+    #
+    #     #cache_enabled        = False # cache_auth_available     # For now disable the cache
+    #     cache_enabled        = cache_auth_available     # For now disable the cache
+    #     cache_client__config = Cache__Service__Fast_API__Client__Config(**auth__kwargs, mode=client_mode)
+    #
+    #     self.cache_config    = Schema__Cache__Config            (**auth__kwargs, enabled=cache_enabled)
+    #     self.cache_client    = Cache__Service__Fast_API__Client (config=cache_client__config)
+    #
+    #     return self
 
 
     def url_to_cache_key(self, target_url : str                                         # Convert URL to hierarchical cache_key

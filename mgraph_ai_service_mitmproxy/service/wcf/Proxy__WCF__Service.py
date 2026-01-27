@@ -25,7 +25,7 @@ class Proxy__WCF__Service(Type_Safe):                                          #
         self.request_handler   = WCF__Request__Handler(wcf_base_url = self.wcf_base_url,
                                                        timeout      = self.timeout     )
         self.command_processor = WCF__Command__Processor()
-        self.cache_service     = Proxy__Cache__Service().setup()
+        self.cache_service     = Proxy__Cache__Service()#.setup()
         self.cache_integrator  = WCF__Cache__Integrator(cache_service = self.cache_service)
         return self
 

@@ -1,13 +1,15 @@
-from unittest                                                                          import TestCase
-from osbot_utils.testing.__                                                            import __
-from osbot_utils.testing.__helpers                                                     import obj
-from mgraph_ai_service_mitmproxy.utils.testing.Testing__Cache_Service__With__Test_Data import setup__testing__cache_service__with__test_data
+from unittest                                                                           import TestCase
+from mgraph_ai_service_cache_client.client.cache_service.register_cache_service         import register_cache_service__in_memory
+from osbot_utils.testing.__                                                             import __
+from osbot_utils.testing.__helpers                                                      import obj
+from mgraph_ai_service_mitmproxy.utils.testing.Testing__Cache_Service__With__Test_Data  import setup__testing__cache_service__with__test_data
 
 
 class test_Proxy__Cache__Service__transformations(TestCase):
 
     @classmethod
     def setUpClass(cls):
+        register_cache_service__in_memory()
         with setup__testing__cache_service__with__test_data() as _:
             cls.cache_test_data = _
             cls.cache_service   = _.cache_service

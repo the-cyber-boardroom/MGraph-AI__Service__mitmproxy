@@ -1,3 +1,8 @@
+from mgraph_ai_service_html_graph.client.register_html_graph_service import register_html_graph_service__in_memory
+
+from mgraph_ai_service_cache_client.client.cache_service.register_cache_service import register_cache_service__in_memory
+from osbot_fast_api.core_routes.registry.Routes__Service__Registry import Routes__Service__Registry
+
 import mgraph_ai_service_mitmproxy__console
 from osbot_fast_api.api.decorators.route_path                   import route_path
 from osbot_fast_api.api.routes.Routes__Set_Cookie               import Routes__Set_Cookie
@@ -11,7 +16,7 @@ from mgraph_ai_service_mitmproxy.utils.Version                  import version__
 from osbot_fast_api_serverless.fast_api.routes.Routes__Info     import Routes__Info
 
 class Mitmproxy__Service__Fast_API(Serverless__Fast_API):
-
+    run_in_memory : bool = True                                 # todo: find a better place to put this option
 
     def setup(self):
         with self.config as _:
@@ -22,15 +27,22 @@ class Mitmproxy__Service__Fast_API(Serverless__Fast_API):
 
         self.setup_web_console()
 
+        self.setup__in_memory__support()
         return super().setup()
+
+    def setup__in_memory__support(self):
+        if self.run_in_memory:
+            register_cache_service__in_memory()
+            register_html_graph_service__in_memory()
 
 
 
     def setup_routes(self):
-        self.add_routes(Routes__Proxy     )
-        self.add_routes(Routes__Cache     )
-        self.add_routes(Routes__Info      )
-        self.add_routes(Routes__Set_Cookie)
+        self.add_routes(Routes__Proxy            )
+        self.add_routes(Routes__Cache            )
+        self.add_routes(Routes__Info             )
+        self.add_routes(Routes__Set_Cookie       )
+        self.add_routes(Routes__Service__Registry)
 
 
     # todo: refactor to separate class (focused on setting up this static route)

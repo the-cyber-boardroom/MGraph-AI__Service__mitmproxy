@@ -2,9 +2,8 @@ import pytest
 from unittest                                                                           import TestCase
 from mgraph_ai_service_cache.service.cache.Cache__Config                                import Cache__Config
 from mgraph_ai_service_cache.service.cache.Cache__Service                               import Cache__Service
-from mgraph_ai_service_cache_client.client.client_contract.Cache__Service__Fast_API__Client           import Cache__Service__Fast_API__Client
-from mgraph_ai_service_cache_client.client.client_contract.Cache__Service__Fast_API__Client__Config   import Cache__Service__Fast_API__Client__Config
 from mgraph_ai_service_cache.fast_api.Cache_Service__Fast_API                           import Cache_Service__Fast_API
+from mgraph_ai_service_cache_client.client.cache_client.Cache__Service__Client          import Cache__Service__Client
 from mgraph_ai_service_cache_client.schemas.cache.enums.Enum__Cache__Storage_Mode       import Enum__Cache__Storage_Mode
 from osbot_fast_api.utils.Fast_API_Server                                               import Fast_API_Server
 from osbot_fast_api_serverless.fast_api.Serverless__Fast_API__Config                    import Serverless__Fast_API__Config
@@ -36,15 +35,12 @@ class test_Proxy__WCF__Service__cache_integration(TestCase):
                                                                   cache_service = Cache__Service(cache_config=cache_config))
             cls.fast_api_server         = Fast_API_Server(app=cls.cache_service__fast_api.app())
             cls.server_url              = cls.fast_api_server.url().rstrip("/")
-            cls.server_config           = Cache__Service__Fast_API__Client__Config(base_url     = cls.server_url,
-                                                                                   fast_api_app = cls.cache_service__fast_api.app())
-            cls.fast_api_client         = Cache__Service__Fast_API__Client(config=cls.server_config)
+
+            cls.fast_api_client         = Cache__Service__Client()
             cls.cache_service__fast_api.setup()
             cls.fast_api_server.start()
 
-            cls.client_config = Cache__Service__Fast_API__Client__Config(base_url=cls.server_url,
-                                                                         fast_api_app = cls.cache_service__fast_api.app())
-            cls.cache_client  = Cache__Service__Fast_API__Client(config=cls.client_config)
+            cls.cache_client  = Cache__Service__Client()
             cls.cache_config  = Schema__Cache__Config(enabled  = True                ,
                                                       base_url = cls.server_url      ,
                                                       namespace = "proxy-cache-tests",

@@ -1,19 +1,9 @@
 from unittest                                                                                       import TestCase
-from memory_fs.storage_fs.providers.Storage_FS__Memory                                              import Storage_FS__Memory
-from mgraph_ai_service_cache.fast_api.Cache_Service__Fast_API                                       import Cache_Service__Fast_API
-from mgraph_ai_service_cache.service.cache.Cache__Config                                            import Cache__Config
-from mgraph_ai_service_cache.service.cache.Cache__Service                                           import Cache__Service
-from mgraph_ai_service_cache_client.client.client_contract.Cache__Service__Fast_API__Client         import Cache__Service__Fast_API__Client
-from mgraph_ai_service_cache_client.client.client_contract.Cache__Service__Fast_API__Client__Config import Cache__Service__Fast_API__Client__Config
-from mgraph_ai_service_cache_client.schemas.cache.enums.Enum__Cache__Storage_Mode                   import Enum__Cache__Storage_Mode
-from osbot_fast_api.utils.Fast_API_Server                                                           import Fast_API_Server
-from osbot_fast_api_serverless.fast_api.Serverless__Fast_API__Config                                import Serverless__Fast_API__Config
+from mgraph_ai_service_cache_client.client.cache_service.register_cache_service                     import register_cache_service__in_memory
 from osbot_utils.helpers.cache.Cache__Hash__Generator                                               import Cache__Hash__Generator
 from osbot_utils.helpers.duration.decorators.capture_duration                                       import capture_duration
 from osbot_utils.testing.__                                                                         import __, __SKIP__
 from osbot_utils.type_safe.primitives.core.Safe_UInt                                                import Safe_UInt
-from osbot_utils.utils.Http                                                                         import GET_json
-from osbot_utils.utils.Json                                                                         import str_to_json
 from osbot_utils.utils.Misc                                                                         import list_set, is_guid
 from osbot_utils.testing.__helpers                                                                  import obj
 from mgraph_ai_service_mitmproxy.service.cache.Proxy__Cache__Service                                import Proxy__Cache__Service
@@ -26,58 +16,60 @@ class test_Proxy__Cache__Service(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         with capture_duration() as duration:
-            cache_config = Cache__Config(storage_mode=Enum__Cache__Storage_Mode.MEMORY)
-
-            cls.serverless_config       = Serverless__Fast_API__Config(enable_api_key=False)
-            cls.cache_service__fast_api = Cache_Service__Fast_API(config=cls.serverless_config,
-                                                                  cache_service=Cache__Service(cache_config=cache_config))  # Inject configured service
-
-            cls.fast_api_server         = Fast_API_Server(app=cls.cache_service__fast_api.app())
-            cls.server_url              = cls.fast_api_server.url().rstrip("/")                              # note: the trailing / was causing issues with the auto-generated request code
-            #cls.server_url              = "http://0.0.0.0:10017"                                            # note: to use a local server we need to also add the auth
-
-            cls.server_config           = Cache__Service__Fast_API__Client__Config(base_url=cls.server_url)
-            cls.fast_api_client         = Cache__Service__Fast_API__Client        (config=cls.server_config)
-
-            cls.cache_service__fast_api.setup()
-            cls.fast_api_server        .start()
-
-            cls.client_config = Cache__Service__Fast_API__Client__Config(base_url = cls.server_url   ,
-                                                                         fast_api_app = cls.cache_service__fast_api.app())
-            cls.cache_client  = Cache__Service__Fast_API__Client         (config   = cls.client_config)
-            cls.cache_config  = Schema__Cache__Config             (enabled  = True                ,
-                                                                   base_url  = cls.server_url     ,
-                                                                   namespace = "proxy-cache-tests",
-                                                                   timeout   = 30)
+            # cache_config = Cache__Config(storage_mode=Enum__Cache__Storage_Mode.MEMORY)
+            #
+            # cls.serverless_config       = Serverless__Fast_API__Config(enable_api_key=False)
+            # cls.cache_service__fast_api = Cache_Service__Fast_API(config=cls.serverless_config,
+            #                                                       cache_service=Cache__Service(cache_config=cache_config))  # Inject configured service
+            #
+            # cls.fast_api_server         = Fast_API_Server(app=cls.cache_service__fast_api.app())
+            # cls.server_url              = cls.fast_api_server.url().rstrip("/")                              # note: the trailing / was causing issues with the auto-generated request code
+            # #cls.server_url              = "http://0.0.0.0:10017"                                            # note: to use a local server we need to also add the auth
+            #
+            # cls.server_config           = Cache__Service__Fast_API__Client__Config(base_url=cls.server_url)
+            # cls.fast_api_client         = Cache__Service__Fast_API__Client        (config=cls.server_config)
+            #
+            # cls.cache_service__fast_api.setup()
+            # cls.fast_api_server        .start()
+            #
+            # cls.client_config = Cache__Service__Fast_API__Client__Config(base_url = cls.server_url   ,
+            #                                                              fast_api_app = cls.cache_service__fast_api.app())
+            # cls.cache_client  = Cache__Service__Fast_API__Client         (config   = cls.client_config)
+            # cls.cache_config  = Schema__Cache__Config             (enabled  = True                ,
+            #                                                        base_url  = cls.server_url     ,
+            #                                                        namespace = "proxy-cache-tests",
+            #                                                        timeout   = 30)
             # Create cache service instance
-            cls.cache_service = Proxy__Cache__Service(cache_client = cls.cache_client,
-                                                      cache_config = cls.cache_config,
+            register_cache_service__in_memory()
+            cls.cache_config  = Schema__Cache__Config             (enabled  = True                ,
+                                                                   namespace = "proxy-cache-tests")
+            cls.cache_service = Proxy__Cache__Service(cache_config = cls.cache_config,
                                                       stats        = Schema__Cache__Stats())
 
         assert duration.seconds < 5               # server setup and start should not take more than 0.5 (locally takes about 0.25)
 
-    @classmethod
-    def tearDownClass(cls) -> None:
-        cls.fast_api_server.stop()
+    # @classmethod
+    # def tearDownClass(cls) -> None:
+    #     cls.fast_api_server.stop()
 
 
-    def test__setUpClass(self):
-        with self.cache_service as _:
-            assert type(_) is Proxy__Cache__Service
-
-            # Check OpenAPI spec
-
-            open_api_json       = GET_json(self.server_url + '/openapi.json')
-            open_api_json__obj  = obj(open_api_json)
-            paths_json          = open_api_json.get('paths')
-            storage_info        = GET_json(self.server_url + '/server/storage/info')                            # Verify we're using MEMORY storage mode
-            storage_backend     = self.cache_service__fast_api.cache_service.storage_backend()                  # Verify storage backend type
-
-            assert open_api_json__obj.info.title                                        == 'Cache_Service__Fast_API'
-            assert '/{namespace}/retrieve/{cache_id}'                                   in list_set(paths_json)                           # confirm the routes have been wired
-            assert self.cache_service__fast_api.cache_service.cache_config.storage_mode == Enum__Cache__Storage_Mode.MEMORY # Additional verification - check the actual cache service configuration
-            assert storage_info                                                         == { 'storage_mode': 'memory',   'ttl_hours': 24 }
-            assert type(storage_backend)                                                is Storage_FS__Memory
+    # def test__setUpClass(self):
+    #     with self.cache_service as _:
+    #         assert type(_) is Proxy__Cache__Service
+    #
+    #         # Check OpenAPI spec
+    #
+    #         open_api_json       = GET_json(self.server_url + '/openapi.json')
+    #         open_api_json__obj  = obj(open_api_json)
+    #         paths_json          = open_api_json.get('paths')
+    #         storage_info        = GET_json(self.server_url + '/server/storage/info')                            # Verify we're using MEMORY storage mode
+    #         storage_backend     = self.cache_service__fast_api.cache_service.storage_backend()                  # Verify storage backend type
+    #
+    #         assert open_api_json__obj.info.title                                        == 'Cache_Service__Fast_API'
+    #         assert '/{namespace}/retrieve/{cache_id}'                                   in list_set(paths_json)                           # confirm the routes have been wired
+    #         assert self.cache_service__fast_api.cache_service.cache_config.storage_mode == Enum__Cache__Storage_Mode.MEMORY # Additional verification - check the actual cache service configuration
+    #         assert storage_info                                                         == { 'storage_mode': 'memory',   'ttl_hours': 24 }
+    #         assert type(storage_backend)                                                is Storage_FS__Memory
 
 
     def test__url_to_cache_key(self):                          # Test URL to cache_key conversion

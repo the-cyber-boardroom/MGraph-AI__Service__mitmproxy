@@ -19,6 +19,9 @@ python                         = "^3.12"
 osbot-fast-api-serverless      = "*"
 mgraph-ai-service-cache-client = "*"
 osbot-docker                   = "*"
+# to run in memory
+mgraph_ai_service_cache        = "*"
+mgraph_ai_service_html_graph   = "*"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

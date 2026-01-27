@@ -2,6 +2,7 @@ from unittest                                                           import T
 from fastapi                                                            import FastAPI
 from osbot_fast_api.api.Fast_API                                        import ENV_VAR__FAST_API__AUTH__API_KEY__NAME, ENV_VAR__FAST_API__AUTH__API_KEY__VALUE
 from osbot_fast_api.api.routes.Routes__Set_Cookie                       import ROUTES_PATHS__SET_COOKIE
+from osbot_fast_api.core_routes.registry.Routes__Service__Registry import ROUTES_PATHS__REGISTRY
 from osbot_fast_api_serverless.fast_api.routes.Routes__Info             import ROUTES_PATHS__INFO, ROUTES_INFO__HEALTH__RETURN_VALUE
 from osbot_local_stack.local_stack.Local_Stack                          import Local_Stack
 from osbot_utils.utils.Env                                              import get_env
@@ -64,4 +65,5 @@ class test_Service__Fast_API__client(TestCase):
                                                       ROUTES_PATHS__PROXY                       +
                                                       ROUTES_PATHS__CACHE                       +
                                                       ROUTES_PATHS__SET_COOKIE                  +
-                                                      ROUTES_PATHS__MITMPROXY__SERVICE__CONSOLE )
+                                                      ROUTES_PATHS__MITMPROXY__SERVICE__CONSOLE +
+                                                      ROUTES_PATHS__REGISTRY                    )
