@@ -7,7 +7,7 @@ LAMBDA_DEPENDENCIES__FAST_API_SERVERLESS = ['httpx==0.28.1'                     
                                             'memory-fs==v0.40.0'                     ,
                                             'mgraph-ai-service-cache-client==0.28.0' ,
                                             'mgraph-ai-service-cache==0.14.0'        ,
-                                            'mgraph-ai-service-html-graph==1.6.0'    ,
+                                            'mgraph-ai-service-html-graph==v1.6.0'   ,
                                             'osbot-fast-api-serverless==1.33.0'      ]
 
 
