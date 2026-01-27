@@ -1,7 +1,6 @@
 from unittest                                                          import TestCase
 from osbot_utils.testing.__                                            import __
 from osbot_utils.testing.__helpers                                     import obj
-from osbot_utils.utils.Env                                             import in_github_action, load_dotenv
 from mgraph_ai_service_mitmproxy.fast_api.routes.Routes__Cache         import Routes__Cache
 from mgraph_ai_service_mitmproxy.service.cache.Proxy__Cache__Service   import Proxy__Cache__Service
 
@@ -38,10 +37,11 @@ class test_Routes__Cache(TestCase):
 
     def test__stats(self):              # Test /cache/stats endpoint logic
         with self.routes_cache as _:
-            if in_github_action():
-                enabled = False
-            else:
-                enabled = True
+            # if in_github_action():
+            #     enabled = False
+            # else:
+            #     enabled = True
+            enabled = True
             result = _.stats()
             assert type(result) is dict
             assert obj(result)  == __(enabled                    = enabled,
@@ -57,12 +57,14 @@ class test_Routes__Cache(TestCase):
 
     def test_config(self):                     # Test /cache/config endpoint logic
         with self.routes_cache as _:                                        # at the moment the auth is not configure in GH actions
-            if in_github_action():
-                auth_configured = False
-                enabled         = False
-            else:
-                auth_configured = False
-                enabled         = True
+            # if in_github_action():
+            #     auth_configured = False
+            #     enabled         = False
+            # else:
+            #     auth_configured = False
+            #     enabled         = True
+            auth_configured = False
+            enabled         = True
             result = _.config()
             assert obj(result) == __(enabled         = enabled                       ,
                                      auth_configured = auth_configured               ,
