@@ -6,25 +6,15 @@
 
 from typing                                                                                     import Dict, Any
 from datetime                                                                                   import datetime
+from mgraph_ai_service_html_graph.client.Html_Graph__Service__Client                            import Html_Graph__Service__Client
 from osbot_utils.type_safe.Type_Safe                                                            import Type_Safe
 from osbot_utils.type_safe.primitives.domains.web.safe_str.Safe_Str__Url                        import Safe_Str__Url
 from osbot_utils.type_safe.type_safe_core.decorators.type_safe                                  import type_safe
-from mgraph_ai_service_mitmproxy.service.html_graph.HTML_Graph__Service__Client                 import HTML_Graph__Service__Client
 from mgraph_ai_service_mitmproxy.schemas.html.Enum__HTML__Transformation_Mode                   import Enum__HTML__Transformation_Mode
 
 
 class HTML_Graph__Cache__Handler(Type_Safe):                                    # Handles HTML Graph cache operations
-    html_graph_client : HTML_Graph__Service__Client = None                      # HTML Graph API client
-
-    def setup(self) -> 'HTML_Graph__Cache__Handler':                            # Initialize the handler
-        self.html_graph_client = HTML_Graph__Service__Client().setup()
-        return self
-
-    def set_test_client(self, test_client: Any                                  # Inject TestClient for testing
-                         ) -> 'HTML_Graph__Cache__Handler':
-        if self.html_graph_client:
-            self.html_graph_client.set_test_client(test_client)
-        return self
+    html_graph_client : Html_Graph__Service__Client                       # HTML Graph API client
 
     @type_safe
     def construct_url(self, scheme : str,                                  # Build full URL from components

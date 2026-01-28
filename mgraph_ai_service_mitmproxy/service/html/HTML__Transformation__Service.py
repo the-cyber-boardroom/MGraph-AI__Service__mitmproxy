@@ -70,13 +70,11 @@ class HTML__Transformation__Service(Type_Safe):                                 
 
             print(f"    ✅ Transformation complete in {call_duration_ms/1000:.2f}s")
 
-            return Schema__HTML__Transformation__Result(
-                transformed_html       = transformed_html,
-                transformation_mode    = mode,
-                content_type           = mode.to_content_type(),
-                cache_hit              = False,
-                transformation_time_ms = Safe_Float(call_duration_ms)
-            )
+            return Schema__HTML__Transformation__Result(transformed_html       = transformed_html,
+                                                        transformation_mode    = mode,
+                                                        content_type           = mode.to_content_type(),
+                                                        cache_hit              = False,
+                                                        transformation_time_ms = Safe_Float(call_duration_ms))
 
         except Exception as e:
             print(f"    ⚠️  Transformation error: {e}")

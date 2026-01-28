@@ -20,12 +20,12 @@ class Proxy__Request__Service(Type_Safe):                            # Request p
     content_service     : Proxy__Content__Service                        # Content processing
     cookie_service      : Proxy__Cookie__Service                         # Cookie-based control
     admin_service       : Proxy__Admin__Service      = None              # Admin page generation
-    html_graph_handler  : HTML_Graph__Cache__Handler = None
+    html_graph_handler  : HTML_Graph__Cache__Handler
 
 
     def setup(self):
         self.admin_service      = Proxy__Admin__Service     ().setup()
-        self.html_graph_handler = HTML_Graph__Cache__Handler().setup()
+        #self.html_graph_handler = HTML_Graph__Cache__Handler()#.setup()
         return self
 
     def process_request(self, request_data : Schema__Proxy__Request_Data  # Process incoming request

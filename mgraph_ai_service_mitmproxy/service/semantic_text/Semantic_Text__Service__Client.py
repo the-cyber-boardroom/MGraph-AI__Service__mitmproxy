@@ -49,7 +49,6 @@ class Semantic_Text__Service__Client(Type_Safe):                                
             result = self.requests().execute(method = "POST"       ,
                                              path   = endpoint_path,
                                              body   = payload      )
-
             if result.status_code == 200 and result.json():
                 return Schema__Semantic_Text__Transformation__Response.from_json(result.json())
             else:

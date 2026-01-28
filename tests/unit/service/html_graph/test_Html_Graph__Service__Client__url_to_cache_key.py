@@ -1,14 +1,16 @@
 import re
-from unittest                                                                                   import TestCase
 import pytest
+from unittest                                                                                   import TestCase
+from mgraph_ai_service_html_graph.client.Html_Graph__Service__Client                            import Html_Graph__Service__Client
+from mgraph_ai_service_html_graph.client.register_html_graph_service                            import register_html_graph_service__in_memory
 
-from mgraph_ai_service_mitmproxy.service.html_graph.HTML_Graph__Service__Client                 import HTML_Graph__Service__Client
 
-class test_HTML_Graph__Service__Client__url_to_cache_key(TestCase):             # Test URL conversion
+class test_Html_Graph__Service__Client__url_to_cache_key(TestCase):             # Test URL conversion
 
     @classmethod
     def setUpClass(cls):                                                        # Setup shared client
-        cls.client = HTML_Graph__Service__Client()
+        register_html_graph_service__in_memory()
+        cls.client = Html_Graph__Service__Client()
 
     def test_simple_url(self):                                                  # Test basic URL conversion
         url       = "https://example.com/about"

@@ -20,12 +20,12 @@ class Proxy__Response__Service(Type_Safe):                       # Main response
     headers_service             : Proxy__Headers__Service                    # Standard headers
     cookie_service              : Proxy__Cookie__Service                     # Cookie-based control
     html_transformation_service : HTML__Transformation__Service
-    html_graph_handler          : HTML_Graph__Cache__Handler    = None
+    html_graph_handler          : HTML_Graph__Cache__Handler
 
     def setup(self):
         self.debug_service               = Proxy__Debug__Service        ().setup()
         #self.html_transformation_service = HTML__Transformation__Service().setup()
-        self.html_graph_handler          = HTML_Graph__Cache__Handler   ().setup()
+        #self.html_graph_handler          = HTML_Graph__Cache__Handler   ()#.setup()
         return self
 
     def generate_request_id(self) -> str:                        # Generate unique request ID
@@ -60,13 +60,16 @@ class Proxy__Response__Service(Type_Safe):                       # Main response
                 self.stats_service.increment_content_modification()
 
             # handle HTML-Graph and it's cache
-            graph_response = self.handle_html_graph_store(response_data.json())              # todo: we should be using Schema__Proxy__Response_Data here
-            if graph_response:
-                return graph_response
+            store_response = self.handle_html_graph_store(response_data.json())              # todo: we should be using Schema__Proxy__Response_Data here
+            if store_response:
+                print("     > Creating transformed_html and transformation_headers")
+                transformation_headers = store_response
+                transformed_html       = response_data.response.get('body')
+            else:
 
-            # Process HTML transformation based on mitm-mode cookie
-            transformed_html, transformation_headers = self.process_html_transformation(response_data   = response_data    ,
-                                                                                        request_headers = request_headers  )
+                # Process HTML transformation based on mitm-mode cookie
+                transformed_html, transformation_headers = self.process_html_transformation(response_data   = response_data    ,
+                                                                                            request_headers = request_headers  )
 
             if transformed_html:
                 modifications.modified_body = transformed_html
