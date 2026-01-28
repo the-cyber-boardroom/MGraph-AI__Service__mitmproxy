@@ -2,7 +2,7 @@ from unittest                                                           import T
 from osbot_utils.testing.__                                             import __, __SKIP__
 from osbot_utils.type_safe.type_safe_core.collections.Type_Safe__Dict   import Type_Safe__Dict
 from mgraph_ai_service_mitmproxy.fast_api.routes.Routes__Proxy          import Schema__Proxy__Response_Data, Schema__Proxy__Modifications
-from tests.unit.Mitmproxy_Service__Fast_API__Test_Objs                   import setup__service_fast_api_test_objs, TEST_API_KEY__NAME, TEST_API_KEY__VALUE
+from tests.unit.Mitmproxy_Service__Fast_API__Test_Objs                  import setup__service_fast_api_test_objs, TEST_API_KEY__NAME, TEST_API_KEY__VALUE
 
 
 class test_Routes__Proxy__client(TestCase):

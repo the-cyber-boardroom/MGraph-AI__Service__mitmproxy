@@ -1,4 +1,5 @@
 from unittest                                                                           import TestCase
+from osbot_fast_api.services.registry.Fast_API__Service__Registry                       import fast_api__service__registry
 from mgraph_ai_service_cache_client.client.cache_service.register_cache_service         import register_cache_service__in_memory
 from osbot_utils.testing.__                                                             import __
 from osbot_utils.testing.__helpers                                                      import obj
@@ -9,6 +10,7 @@ class test_Proxy__Cache__Service__transformations(TestCase):
 
     @classmethod
     def setUpClass(cls):
+        fast_api__service__registry.configs__save()
         register_cache_service__in_memory()
         with setup__testing__cache_service__with__test_data() as _:
             cls.cache_test_data = _
@@ -18,6 +20,7 @@ class test_Proxy__Cache__Service__transformations(TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.cache_test_data.stop__fast_api__cache_server()
+        fast_api__service__registry.configs__restore()
 
 
     def test__get_transformations(self):                                    # Test retrieving transformations for a page

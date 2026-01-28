@@ -1,65 +1,80 @@
-from unittest                                                                       import TestCase
-from mgraph_ai_service_cache_client.client.cache_service.register_cache_service     import register_cache_service__in_memory
-from osbot_utils.helpers.duration.decorators.print_duration                         import print_duration
-from osbot_utils.testing.Pytest                                                     import skip_if_in_github_action
-from osbot_utils.type_safe.primitives.domains.web.safe_str.Safe_Str__Html           import Safe_Str__Html
-from osbot_utils.type_safe.type_safe_core.collections.Type_Safe__Dict               import Type_Safe__Dict
-from mgraph_ai_service_mitmproxy.schemas.html.Schema__HTML__Transformation__Step_1  import Schema__HTML__Transformation__Step_1
-from mgraph_ai_service_mitmproxy.schemas.html.safe_dict.Safe_Dict__Hash__To__Text   import Safe_Dict__Hash__To__Text
-from mgraph_ai_service_mitmproxy.service.cache.Proxy__Cache__Service                import Proxy__Cache__Service
-from osbot_utils.testing.__                                                         import __, __SKIP__, __LESS_THAN__
-from osbot_utils.testing.Temp_Env_Vars                                              import Temp_Env_Vars
-from osbot_utils.type_safe.Type_Safe                                                import Type_Safe
-from osbot_utils.utils.Http                                                         import GET_json
-from osbot_utils.utils.Objects                                                      import base_classes
-from mgraph_ai_service_mitmproxy.service.html.HTML__Transformation__Service         import HTML__Transformation__Service
-from mgraph_ai_service_mitmproxy.schemas.html.Enum__HTML__Transformation_Mode       import Enum__HTML__Transformation_Mode
-from mgraph_ai_service_mitmproxy.schemas.html.Schema__HTML__Transformation__Result  import Schema__HTML__Transformation__Result
-from tests.unit.Mitmproxy_Service__Fast_API__Test_Objs                              import (get__html_service__fast_api_server,
-                                                                                           get__semantic_text_service__fast_api_server)
+from unittest                                                                           import TestCase
+from osbot_fast_api.services.registry.Fast_API__Service__Registry                       import fast_api__service__registry
+from mgraph_ai_service_cache_client.client.cache_service.register_cache_service         import register_cache_service__in_memory
+from osbot_utils.testing.Pytest                                                         import skip_if_in_github_action
+from osbot_utils.type_safe.primitives.domains.web.safe_str.Safe_Str__Html               import Safe_Str__Html
+from osbot_utils.type_safe.type_safe_core.collections.Type_Safe__Dict                   import Type_Safe__Dict
+from mgraph_ai_service_mitmproxy.schemas.html.Schema__HTML__Transformation__Step_1      import Schema__HTML__Transformation__Step_1
+from mgraph_ai_service_mitmproxy.schemas.html.safe_dict.Safe_Dict__Hash__To__Text       import Safe_Dict__Hash__To__Text
+from mgraph_ai_service_mitmproxy.service.cache.Proxy__Cache__Service                    import Proxy__Cache__Service
+from osbot_utils.testing.__                                                             import __, __SKIP__, __LESS_THAN__
+from osbot_utils.type_safe.Type_Safe                                                    import Type_Safe
+from osbot_utils.utils.Objects                                                          import base_classes
+from mgraph_ai_service_mitmproxy.service.html.HTML__Transformation__Service             import HTML__Transformation__Service
+from mgraph_ai_service_mitmproxy.schemas.html.Enum__HTML__Transformation_Mode           import Enum__HTML__Transformation_Mode
+from mgraph_ai_service_mitmproxy.schemas.html.Schema__HTML__Transformation__Result      import Schema__HTML__Transformation__Result
+from mgraph_ai_service_mitmproxy.service.html.client.HTML__Service__Client              import HTML__Service__Client
+from mgraph_ai_service_mitmproxy.service.html.client.register_html_service              import register_html_service__in_memory
+from mgraph_ai_service_mitmproxy.service.semantic_text.Semantic_Text__Service__Client   import Semantic_Text__Service__Client
+from mgraph_ai_service_mitmproxy.service.semantic_text.register_semantic_text_service   import register_semantic_text_service__in_memory
 
 
 class test_HTML__Transformation__Service(TestCase):
 
     @classmethod
-    def setUpClass(cls):                                                            # ONE-TIME setup: start all services
-        with print_duration(action_name='start 3 FastAPI servers'):
+    def setUpClass(cls):                                                            # ONE-TIME setup: start both FastAPI servers
+        fast_api__service__registry.configs__save()
+        register_cache_service__in_memory()
+        register_html_service__in_memory ()
 
-            register_cache_service__in_memory()                         # todo: add in memory cache support to the other services (used below)
+        #register_html_graph_service__in_memory   ()
+        register_semantic_text_service__in_memory()
 
-            with get__html_service__fast_api_server() as _:
-                cls.html_service_server   = _.fast_api_server
-                cls.html_service_base_url = _.server_url
-
-            # with get__cache_service__fast_api_server() as _:
-            #     cls.cache_service_server   = _.fast_api_server
-            #     cls.cache_service_base_url = _.server_url
-
-            with get__semantic_text_service__fast_api_server() as _:              # NEW: Semantic Text Service
-                cls.semantic_text_service_server   = _.fast_api_server
-                cls.semantic_text_service_base_url = _.server_url
-
-            cls.html_service_server.start()                                         # Start all servers
-            #cls.cache_service_server.start()
-            cls.semantic_text_service_server.start()
-
-            env_vars = { 'AUTH__TARGET_SERVER__HTML_SERVICE__BASE_URL'         : cls.html_service_base_url          ,
-                         #'AUTH__TARGET_SERVER__CACHE_SERVICE__BASE_URL'        : cls.cache_service_base_url         ,
-                         'AUTH__TARGET_SERVER__SEMANTIC_TEXT_SERVICE__BASE_URL': cls.semantic_text_service_base_url }
-            cls.temp_env_vars = Temp_Env_Vars(env_vars=env_vars).set_vars()
-            cls.html_transformation_service = HTML__Transformation__Service().setup()
+        cls.html_transformation_service = HTML__Transformation__Service()#.setup()
 
     @classmethod
-    def tearDownClass(cls):                                                         # Stop all servers
-        cls.html_service_server.stop()
-        #cls.cache_service_server.stop()
-        cls.semantic_text_service_server.stop()                                     # NEW
-        cls.temp_env_vars.restore_vars()
+    def tearDownClass(cls):                                                         # Stop both servers and restore environment
+        fast_api__service__registry.configs__restore()
+
+    # @classmethod
+    # def setUpClass(cls):                                                            # ONE-TIME setup: start all services
+    #     with print_duration(action_name='start 3 FastAPI servers'):
+    #
+    #         register_cache_service__in_memory()                         # todo: add in memory cache support to the other services (used below)
+    #
+    #         with get__html_service__fast_api_server() as _:
+    #             cls.html_service_server   = _.fast_api_server
+    #             cls.html_service_base_url = _.server_url
+    #
+    #         # with get__cache_service__fast_api_server() as _:
+    #         #     cls.cache_service_server   = _.fast_api_server
+    #         #     cls.cache_service_base_url = _.server_url
+    #
+    #         with get__semantic_text_service__fast_api_server() as _:              # NEW: Semantic Text Service
+    #             cls.semantic_text_service_server   = _.fast_api_server
+    #             cls.semantic_text_service_base_url = _.server_url
+    #
+    #         cls.html_service_server.start()                                         # Start all servers
+    #         #cls.cache_service_server.start()
+    #         cls.semantic_text_service_server.start()
+    #
+    #         env_vars = { 'AUTH__TARGET_SERVER__HTML_SERVICE__BASE_URL'         : cls.html_service_base_url          ,
+    #                      #'AUTH__TARGET_SERVER__CACHE_SERVICE__BASE_URL'        : cls.cache_service_base_url         ,
+    #                      'AUTH__TARGET_SERVER__SEMANTIC_TEXT_SERVICE__BASE_URL': cls.semantic_text_service_base_url }
+    #         cls.temp_env_vars = Temp_Env_Vars(env_vars=env_vars).set_vars()
+   #         cls.html_transformation_service = HTML__Transformation__Service().setup()
+
+    # @classmethod
+    # def tearDownClass(cls):                                                         # Stop all servers
+    #     cls.html_service_server.stop()
+    #     #cls.cache_service_server.stop()
+    #     cls.semantic_text_service_server.stop()                                     # NEW
+    #     cls.temp_env_vars.restore_vars()
 
     def test__fast_api__servers(self):                                              # Verify all servers running
-        assert GET_json(self.html_service_base_url          + '/info/health') == {'status': 'ok'}
+        #assert GET_json(self.html_service_base_url          + '/info/health') == {'status': 'ok'}
         #assert GET_json(self.cache_service_base_url         + '/info/health') == {'status': 'ok'}
-        assert GET_json(self.semantic_text_service_base_url + '/info/health') == {'status': 'ok'}  # NEW
+        #assert GET_json(self.semantic_text_service_base_url + '/info/health') == {'status': 'ok'}  # NEW
 
         with self.html_transformation_service as _:
             assert type(_                      ) is HTML__Transformation__Service
@@ -67,24 +82,24 @@ class test_HTML__Transformation__Service(TestCase):
             assert _.semantic_text_client       is not None                         # NEW
 
         #assert self.html_service_server.port != self.cache_service_server        .port      # make sure all ports are different
-        assert self.html_service_server.port != self.semantic_text_service_server.port
+        #assert self.html_service_server.port != self.semantic_text_service_server.port
 
 
     def test__init__(self):                                                         # Test auto-initialization
         with HTML__Transformation__Service() as _:
-            assert type(_)                  is HTML__Transformation__Service
-            assert base_classes(_)          == [Type_Safe, object]
-            assert _.html_service_client    is None
-            assert _.semantic_text_client   is None                                 # NEW
-            assert _.cache_service          is None
+            assert type(_)                      is HTML__Transformation__Service
+            assert base_classes(_)              == [Type_Safe, object]
+            assert type(_.html_service_client)  is HTML__Service__Client
+            assert type(_.semantic_text_client) is Semantic_Text__Service__Client
+            assert type(_.cache_service       ) is Proxy__Cache__Service
 
     def test_setup(self):                                                           # Test setup method with real services
         with self.html_transformation_service as _:
             assert _.html_service_client                        is not None
             assert _.semantic_text_client                       is not None         # NEW
             assert _.cache_service                              is not None
-            assert _.html_service_client.base_url               == self.html_service_base_url
-            assert _.semantic_text_client.server_base_url()     == self.semantic_text_service_base_url  # NEW
+            #assert _.html_service_client.base_url               == self.html_service_base_url
+            #assert _.semantic_text_client.server_base_url()     == self.semantic_text_service_base_url  # NEW
             #assert _.cache_service.cache_config.base_url        == self.cache_service_base_url
             #assert _.cache_service.cache_client.config.base_url == self.cache_service_base_url
 

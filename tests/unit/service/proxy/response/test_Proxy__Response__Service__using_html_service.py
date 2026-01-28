@@ -1,8 +1,7 @@
 import pytest
 from unittest                                                                               import TestCase
-from osbot_utils.testing.Temp_Env_Vars                                                      import Temp_Env_Vars
+from osbot_fast_api.services.registry.Fast_API__Service__Registry                           import fast_api__service__registry
 from mgraph_ai_service_cache_client.client.cache_service.register_cache_service             import register_cache_service__in_memory
-from mgraph_ai_service_html_graph.client.register_html_graph_service                        import register_html_graph_service__in_memory
 from osbot_utils.testing.Pytest                                                             import skip_if_in_github_action, skip__if_not__in_github_actions
 from osbot_utils.testing.__                                                                 import __, __SKIP__
 from osbot_utils.type_safe.Type_Safe                                                        import Type_Safe
@@ -10,44 +9,34 @@ from osbot_utils.type_safe.primitives.domains.http.safe_str.Safe_Str__Http__Head
 from osbot_utils.utils.Env                                                                  import not_in_github_action
 from osbot_utils.utils.Misc                                                                 import list_set
 from osbot_utils.utils.Objects                                                              import base_classes
+from mgraph_ai_service_mitmproxy.service.html.HTML__Transformation__Service                 import HTML__Transformation__Service
+from mgraph_ai_service_mitmproxy.service.html.client.register_html_service                  import register_html_service__in_memory
 from mgraph_ai_service_mitmproxy.service.proxy.response.Proxy__Response__Service            import Proxy__Response__Service
 from mgraph_ai_service_mitmproxy.schemas.proxy.Schema__Proxy__Response_Data                 import Schema__Proxy__Response_Data
 from mgraph_ai_service_mitmproxy.schemas.proxy.Schema__Response__Processing_Result          import Schema__Response__Processing_Result
-from tests.unit.Mitmproxy_Service__Fast_API__Test_Objs                                      import get__html_service__fast_api_server
+from mgraph_ai_service_mitmproxy.service.semantic_text.register_semantic_text_service       import register_semantic_text_service__in_memory
 
 
 class test_Proxy__Response__Service__using_html_service(TestCase):                 # Integration tests for full HTML transformation flow
 
     @classmethod
     def setUpClass(cls):                                                            # ONE-TIME setup: start both FastAPI servers
+        fast_api__service__registry.configs__save()
+        register_cache_service__in_memory()
+        register_html_service__in_memory ()
+
+        #register_html_graph_service__in_memory   ()
+        register_semantic_text_service__in_memory()
 
 
-        register_cache_service__in_memory     ()                                    # todo: refactor when html_service has support for running in memory
-        with get__html_service__fast_api_server() as _:
-            cls.html_service_server   = _.fast_api_server
-            cls.html_service_base_url = _.server_url
-        #
-        # with get__cache_service__fast_api_server() as _:
-        #     cls.cache_service_server   = _.fast_api_server
-        #     cls.cache_service_base_url = _.server_url
-        #
-        cls.html_service_server .start()                                        # Start both servers
-        # cls.cache_service_server.start()
-        #
-        env_vars = {'AUTH__TARGET_SERVER__HTML_SERVICE__BASE_URL' : cls.html_service_base_url ,
-                    #'AUTH__TARGET_SERVER__CACHE_SERVICE__BASE_URL': cls.cache_service_base_url
-                    }
-        cls.temp_env_vars = Temp_Env_Vars(env_vars=env_vars).set_vars()
-
-
-        register_html_graph_service__in_memory()
         cls.proxy_response_service = Proxy__Response__Service().setup()        # Setup proxy service with real dependencies
 
     @classmethod
     def tearDownClass(cls):                                                         # Stop both servers and restore environment
-        cls.html_service_server.stop()
-        #cls.cache_service_server.stop()
-        cls.temp_env_vars.restore_vars()
+        fast_api__service__registry.configs__restore()
+    #     cls.html_service_server.stop()
+    #     cls.cache_service_server.stop()
+    #     cls.temp_env_vars.restore_vars()
 
     # def test__fast_api__servers(self):                                              # Verify both servers are running
     #     assert GET_json(self.html_service_base_url  + '/info/health') == {'status': 'ok'}
@@ -60,15 +49,15 @@ class test_Proxy__Response__Service__using_html_service(TestCase):              
 
     def test__init__(self):                                                         # Test auto-initialization
         with Proxy__Response__Service() as _:
-            assert type(_)         is Proxy__Response__Service
-            assert base_classes(_) == [Type_Safe, object]
-            assert _.html_transformation_service is None
+            assert type(_)                             is Proxy__Response__Service
+            assert base_classes(_)                     == [Type_Safe, object]
+            assert type(_.html_transformation_service) is HTML__Transformation__Service
 
-    def test_setup(self):                                                           # Test setup creates all dependencies
-        with self.proxy_response_service as _:
-            assert _.html_transformation_service                        is not None
-            assert _.html_transformation_service.html_service_client    is not None
-            assert _.html_transformation_service.cache_service          is not None
+    # def test_setup(self):                                                           # Test setup creates all dependencies
+    #     with self.proxy_response_service as _:
+    #         assert _.html_transformation_service                        is not None
+    #         assert _.html_transformation_service.html_service_client    is not None
+    #         assert _.html_transformation_service.cache_service          is not None
 
     def test_process_response__no_mitm_mode_cookie(self):                           # Test response processing without mitm-mode cookie
         response_data = Schema__Proxy__Response_Data(request  = { 'scheme'        : 'https'                              ,

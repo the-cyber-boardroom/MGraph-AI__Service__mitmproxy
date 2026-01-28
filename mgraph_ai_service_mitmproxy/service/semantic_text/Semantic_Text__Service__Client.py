@@ -1,58 +1,65 @@
-import requests
-from typing                                                                                                     import Dict
+# ═══════════════════════════════════════════════════════════════════════════════
+# Semantic_Text__Service__Client
+# Stateless facade for Semantic Text Service operations
+# Config is stored in registry, looked up at request time
+# ═══════════════════════════════════════════════════════════════════════════════
+
 from osbot_utils.decorators.methods.cache_on_self                                                               import cache_on_self
 from osbot_utils.type_safe.Type_Safe                                                                            import Type_Safe
-from osbot_utils.type_safe.primitives.domains.http.safe_str.Safe_Str__Http__Header__Name                        import Safe_Str__Http__Header__Name
-from osbot_utils.type_safe.primitives.domains.http.safe_str.Safe_Str__Http__Header__Value                       import Safe_Str__Http__Header__Value
-from osbot_utils.type_safe.primitives.domains.identifiers.safe_str.Safe_Str__Id                                 import Safe_Str__Id
 from osbot_utils.type_safe.type_safe_core.decorators.type_safe                                                  import type_safe
-from osbot_utils.utils.Env                                                                                      import get_env
-from osbot_utils.utils.Http                                                                                     import url_join_safe
-from osbot_utils.utils.Json import json_dumps
-
+from mgraph_ai_service_mitmproxy.service.semantic_text.Semantic_Text__Service__Client__Requests                 import Semantic_Text__Service__Client__Requests
 from mgraph_ai_service_mitmproxy.schemas.semantic_text.client.Schema__Semantic_Text__Transformation__Response   import Schema__Semantic_Text__Transformation__Response
 from mgraph_ai_service_mitmproxy.schemas.semantic_text.client.Schema__Semantic_Text__Transformation__Request    import Schema__Semantic_Text__Transformation__Request
-from mgraph_ai_service_mitmproxy.schemas.semantic_text.const__semantic_text                                     import ENV_VAR__AUTH__TARGET_SERVER__SEMANTIC_TEXT_SERVICE__BASE_URL, ENV_VAR__AUTH__TARGET_SERVER__SEMANTIC_TEXT_SERVICE__KEY_NAME, ENV_VAR__AUTH__TARGET_SERVER__SEMANTIC_TEXT_SERVICE__KEY_VALUE
 
 
-class Semantic_Text__Service__Client(Type_Safe):                                                       # HTTP client for Semantic Text Service API
-
-    @cache_on_self
-    def server_base_url(self):
-        base_url_env  = get_env(ENV_VAR__AUTH__TARGET_SERVER__SEMANTIC_TEXT_SERVICE__BASE_URL)
-        return base_url_env
+class Semantic_Text__Service__Client(Type_Safe):                                # Stateless facade - config in registry
 
     @cache_on_self
-    def headers(self) -> Dict[Safe_Str__Http__Header__Name, Safe_Str__Http__Header__Value]:                                    # Get authentication headers from environment
-        key_name  = get_env(ENV_VAR__AUTH__TARGET_SERVER__SEMANTIC_TEXT_SERVICE__KEY_NAME)
-        key_value = get_env(ENV_VAR__AUTH__TARGET_SERVER__SEMANTIC_TEXT_SERVICE__KEY_VALUE)
-        
-        headers = { "content-type" : "application/json" }
-        
-        if key_name and key_value:
-            headers[Safe_Str__Id(key_name)] = Safe_Str__Id(key_value)
-        
-        return headers
+    def requests(self) -> Semantic_Text__Service__Client__Requests:             # Create transport with service_type set
+        requests              = Semantic_Text__Service__Client__Requests()
+        requests.service_type = Semantic_Text__Service__Client                  # Self-reference for registry lookup
+        return requests
+
+    # ───────────────────────────────────────────────────────────────────────────
+    # Health Check
+    # ───────────────────────────────────────────────────────────────────────────
+
+    def health(self) -> bool:                                                   # Check service health
+        try:
+            result = self.requests().execute(method="GET", path="/info/health")
+            if result.status_code == 200:
+                data = result.json() or {}
+                return data.get('status') == 'ok'
+            return False
+        except:
+            return False
+
+    # ───────────────────────────────────────────────────────────────────────────
+    # Transform Text
+    # ───────────────────────────────────────────────────────────────────────────
 
     @type_safe
-    def transform_text(self, request  : Schema__Semantic_Text__Transformation__Request  # Transform text using Semantic Text Service
-                       ) -> Schema__Semantic_Text__Transformation__Response:                                           # Transformation response
+    def transform_text(self, request: Schema__Semantic_Text__Transformation__Request
+                      ) -> Schema__Semantic_Text__Transformation__Response:
 
         endpoint_path = "/text-transformation/transform"
-        server        = self.server_base_url()
-        if not server:
-            raise ValueError("in transform_text, the target server was not be set")
+        payload       = request.json()
 
-        url           = url_join_safe(self.server_base_url(), endpoint_path)
-        post_headers  = self.headers()
-        post_json     = request.json()
-        # print()
-        # print()
-        # print(json_dumps(post_json))
-        # print()
-        # print()
-        response = requests.post(url     = url          ,
-                                 headers = post_headers ,
-                                 json    = post_json    )
+        try:
+            result = self.requests().execute(method = "POST"       ,
+                                             path   = endpoint_path,
+                                             body   = payload      )
 
-        return Schema__Semantic_Text__Transformation__Response.from_json(response.json())
+            if result.status_code == 200 and result.json():
+                return Schema__Semantic_Text__Transformation__Response.from_json(result.json())
+            else:
+                return Schema__Semantic_Text__Transformation__Response(
+                    success       = False                                       ,
+                    error_message = f"Request failed with status {result.status_code}"
+                )
+
+        except Exception as e:
+            return Schema__Semantic_Text__Transformation__Response(
+                success       = False                               ,
+                error_message = f"Unexpected error: {str(e)}"
+            )

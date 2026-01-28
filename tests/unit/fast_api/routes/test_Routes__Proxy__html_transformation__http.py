@@ -1,33 +1,30 @@
 import requests
-from unittest                                                   import TestCase
-from osbot_fast_api.api.schemas.consts.consts__Fast_API         import ENV_VAR__FAST_API__AUTH__API_KEY__NAME, ENV_VAR__FAST_API__AUTH__API_KEY__VALUE
-from osbot_utils.helpers.duration.decorators.print_duration     import print_duration
-from osbot_utils.testing.__                                     import __, __SKIP__
-from osbot_utils.testing.Temp_Env_Vars                          import Temp_Env_Vars
-from osbot_utils.testing.__helpers                              import obj
-from osbot_utils.utils.Http                                     import GET_json
-from tests.unit.Mitmproxy_Service__Fast_API__Test_Objs          import (get__cache_service__fast_api_server,
-                                                                        get__html_service__fast_api_server,
-                                                                        get__mitmproxy_service__fast_api_server, TEST_API_KEY__NAME, TEST_API_KEY__VALUE)
+from unittest                                                                           import TestCase
+from osbot_fast_api.api.schemas.consts.consts__Fast_API                                 import ENV_VAR__FAST_API__AUTH__API_KEY__NAME, ENV_VAR__FAST_API__AUTH__API_KEY__VALUE
+from osbot_utils.testing.Temp_Env_Vars                                                  import Temp_Env_Vars
+from mgraph_ai_service_cache_client.client.cache_service.register_cache_service         import register_cache_service__in_memory
+from osbot_fast_api.services.registry.Fast_API__Service__Registry                       import fast_api__service__registry
+from osbot_utils.helpers.duration.decorators.print_duration                             import print_duration
+from osbot_utils.testing.__                                                             import __, __SKIP__
+from osbot_utils.testing.__helpers                                                      import obj
+from osbot_utils.utils.Http                                                             import GET_json
+from mgraph_ai_service_mitmproxy.service.html.client.register_html_service              import register_html_service__in_memory
+from mgraph_ai_service_mitmproxy.service.semantic_text.register_semantic_text_service   import register_semantic_text_service__in_memory
+from tests.unit.Mitmproxy_Service__Fast_API__Test_Objs                                  import (get__mitmproxy_service__fast_api_server, TEST_API_KEY__NAME, TEST_API_KEY__VALUE)
 
 
 class test_Routes__Proxy__html_transformation__http(TestCase):                 # Test HTML transformation workflow via HTTP requests
 
+
     @classmethod
     def setUpClass(cls):                                                        # ONE-TIME setup: start HTML, Cache, and Mitmproxy services
-        #pytest.skip("race condition with the other FAST API servers")           # todo: figure out why this runs when execute directly but fails when all executed
+        fast_api__service__registry.configs__save()
+        register_cache_service__in_memory()
+        register_html_service__in_memory ()
+        register_semantic_text_service__in_memory()
+
         with print_duration(action_name='setUpClass'):
-            with get__html_service__fast_api_server() as _:
-                cls.html_service_server   = _.fast_api_server
-                cls.html_service_base_url = _.server_url
-
-            with get__cache_service__fast_api_server() as _:
-                cls.cache_service_server   = _.fast_api_server
-                cls.cache_service_base_url = _.server_url
-
-            env_vars = { 'AUTH__TARGET_SERVER__HTML_SERVICE__BASE_URL' : cls.html_service_base_url  ,
-                         'AUTH__TARGET_SERVER__CACHE_SERVICE__BASE_URL': cls.cache_service_base_url ,
-                         ENV_VAR__FAST_API__AUTH__API_KEY__NAME        : TEST_API_KEY__NAME         ,
+            env_vars = { ENV_VAR__FAST_API__AUTH__API_KEY__NAME        : TEST_API_KEY__NAME         ,
                          ENV_VAR__FAST_API__AUTH__API_KEY__VALUE       : TEST_API_KEY__VALUE        }
             cls.temp_env_vars = Temp_Env_Vars(env_vars=env_vars).set_vars()
 
@@ -35,26 +32,19 @@ class test_Routes__Proxy__html_transformation__http(TestCase):                 #
                 cls.mitmproxy_service_server   = _.fast_api_server
                 cls.mitmproxy_service_base_url = _.server_url
 
-
-
-            cls.html_service_server     .start()
-            cls.cache_service_server    .start()
             cls.mitmproxy_service_server.start()
 
     @classmethod
     def tearDownClass(cls):                                                     # Stop all servers
         with print_duration(action_name='tearDownClass'):
-            cls.html_service_server     .stop()
-            cls.cache_service_server    .stop()
             cls.mitmproxy_service_server.stop()
             cls.temp_env_vars.restore_vars()
+            fast_api__service__registry.configs__restore()
 
     def auth_headers(self):
         return {TEST_API_KEY__NAME: TEST_API_KEY__VALUE}
 
     def test__fast_api__servers(self):                                          # Verify all servers running
-        assert GET_json(self.html_service_base_url      + '/info/health', headers=self.auth_headers()) == {'status': 'ok'}
-        assert GET_json(self.cache_service_base_url     + '/info/health', headers=self.auth_headers()) == {'status': 'ok'}
         assert GET_json(self.mitmproxy_service_base_url + '/info/health', headers=self.auth_headers()) == {'status': 'ok'}
 
     def test__process_response__no_html_transformation(self):                  # Test response processing WITHOUT mitm-mode cookie via HTTP

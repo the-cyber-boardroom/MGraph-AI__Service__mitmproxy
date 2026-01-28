@@ -1,8 +1,7 @@
 import uuid
 from typing                                                                          import Dict
 from osbot_utils.type_safe.Type_Safe                                                 import Type_Safe
-
-from mgraph_ai_service_mitmproxy.schemas.html import Enum__HTML__Transformation_Mode
+from mgraph_ai_service_mitmproxy.schemas.html                                        import Enum__HTML__Transformation_Mode
 from mgraph_ai_service_mitmproxy.schemas.proxy.Schema__Proxy__Response_Data          import Schema__Proxy__Response_Data
 from mgraph_ai_service_mitmproxy.schemas.proxy.Schema__Proxy__Modifications          import Schema__Proxy__Modifications
 from mgraph_ai_service_mitmproxy.schemas.proxy.Schema__Response__Processing_Result   import Schema__Response__Processing_Result
@@ -20,12 +19,12 @@ class Proxy__Response__Service(Type_Safe):                       # Main response
     stats_service               : Proxy__Stats__Service                      # Statistics tracking
     headers_service             : Proxy__Headers__Service                    # Standard headers
     cookie_service              : Proxy__Cookie__Service                     # Cookie-based control
-    html_transformation_service : HTML__Transformation__Service = None
+    html_transformation_service : HTML__Transformation__Service
     html_graph_handler          : HTML_Graph__Cache__Handler    = None
 
     def setup(self):
         self.debug_service               = Proxy__Debug__Service        ().setup()
-        self.html_transformation_service = HTML__Transformation__Service().setup()
+        #self.html_transformation_service = HTML__Transformation__Service().setup()
         self.html_graph_handler          = HTML_Graph__Cache__Handler   ().setup()
         return self
 

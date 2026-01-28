@@ -2,12 +2,7 @@ import re
 import time
 from urllib.parse                                                                                   import urlparse
 from typing                                                                                         import Optional, Dict
-
-from osbot_fast_api.services.schemas.registry.enums.Enum__Fast_API__Service__Registry__Client__Mode import Enum__Fast_API__Service__Registry__Client__Mode
-
-from mgraph_ai_service_cache_client.client.cache_client.Cache__Service__Client import Cache__Service__Client
-
-from mgraph_ai_service_cache_client.schemas.consts.consts__Cache_Client                             import ENV_VAR__AUTH__TARGET_SERVER__CACHE_SERVICE__KEY_VALUE
+from mgraph_ai_service_cache_client.client.cache_client.Cache__Service__Client                      import Cache__Service__Client
 from osbot_utils.helpers.cache.Cache__Hash__Generator                                               import Cache__Hash__Generator
 from osbot_utils.type_safe.Type_Safe                                                                import Type_Safe
 from osbot_utils.type_safe.primitives.domains.cryptography.safe_str.Safe_Str__Cache_Hash            import Safe_Str__Cache_Hash
@@ -15,14 +10,12 @@ from osbot_utils.type_safe.primitives.domains.identifiers.Random_Guid           
 from osbot_utils.type_safe.primitives.domains.web.safe_str.Safe_Str__Url                            import Safe_Str__Url
 from osbot_utils.type_safe.type_safe_core.decorators.type_safe                                      import type_safe
 from mgraph_ai_service_cache_client.schemas.cache.enums.Enum__Cache__Store__Strategy                import Enum__Cache__Store__Strategy
-from osbot_utils.utils.Env                                                                          import get_env
 from mgraph_ai_service_mitmproxy.service.cache.schemas.Enum__Cache__Transformation_Type             import Enum__Cache__Transformation_Type
 from mgraph_ai_service_mitmproxy.service.cache.schemas.Schema__Cache__Config                        import Schema__Cache__Config
 from mgraph_ai_service_mitmproxy.service.cache.schemas.Schema__Cache__Page__Entry                   import Schema__Cache__Page__Entry
 from mgraph_ai_service_mitmproxy.service.cache.schemas.Schema__Cache__Page__Refs                    import Schema__Cache__Page__Refs
 from mgraph_ai_service_mitmproxy.service.cache.schemas.Schema__Cache__Stats                         import Schema__Cache__Stats
 from mgraph_ai_service_mitmproxy.service.cache.schemas.safe_str.Safe_Str__Proxy__Cache_Key          import Safe_Str__Proxy__Cache_Key
-from mgraph_ai_service_mitmproxy.service.consts.consts__proxy                                       import ENV_VAR__AUTH__TARGET_SERVER__CACHE_SERVICE__KEY_NAME, ENV_VAR__AUTH__TARGET_SERVER__CACHE_SERVICE__BASE_URL
 
 DEFAULT__TEXT__CACHE_NOT_FOUND = ''                             # this used to be 'Not found' # todo see if we still need this DEFAULT__TEXT__CACHE_NOT_FOUND variable
 PAGE_ENTRY__JSON_FIELD_PATH    = 'cache_key'

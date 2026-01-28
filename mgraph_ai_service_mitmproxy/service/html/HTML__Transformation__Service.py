@@ -1,11 +1,11 @@
 import time
 from typing import Optional, List
 
-from mgraph_ai_service_mitmproxy.schemas.semantic_text.client.Schema__Classification__Criterion_Filter import Schema__Classification__Criterion_Filter
-from mgraph_ai_service_mitmproxy.schemas.semantic_text.client.enums.Enum__Classification__Filter_Mode import Enum__Classification__Filter_Mode
-from mgraph_ai_service_mitmproxy.schemas.semantic_text.client.enums.Enum__Classification__Logic_Operator import Enum__Classification__Logic_Operator
-from mgraph_ai_service_mitmproxy.schemas.semantic_text.client.enums.Enum__Text__Classification__Criteria import Enum__Text__Classification__Criteria
-from mgraph_ai_service_mitmproxy.schemas.semantic_text.client.enums.Enum__Text__Transformation__Engine_Mode import Enum__Text__Transformation__Engine_Mode
+from mgraph_ai_service_mitmproxy.schemas.semantic_text.client.Schema__Classification__Criterion_Filter       import Schema__Classification__Criterion_Filter
+from mgraph_ai_service_mitmproxy.schemas.semantic_text.client.enums.Enum__Classification__Filter_Mode        import Enum__Classification__Filter_Mode
+from mgraph_ai_service_mitmproxy.schemas.semantic_text.client.enums.Enum__Classification__Logic_Operator     import Enum__Classification__Logic_Operator
+from mgraph_ai_service_mitmproxy.schemas.semantic_text.client.enums.Enum__Text__Classification__Criteria     import Enum__Text__Classification__Criteria
+from mgraph_ai_service_mitmproxy.schemas.semantic_text.client.enums.Enum__Text__Transformation__Engine_Mode  import Enum__Text__Transformation__Engine_Mode
 from osbot_utils.type_safe.Type_Safe                                                                         import Type_Safe
 from osbot_utils.type_safe.primitives.core.Safe_Float                                                        import Safe_Float
 from osbot_utils.type_safe.primitives.domains.web.safe_str.Safe_Str__Html                                    import Safe_Str__Html
@@ -15,23 +15,22 @@ from mgraph_ai_service_mitmproxy.schemas.html.Schema__HTML__Transformation__Step
 from mgraph_ai_service_mitmproxy.schemas.html.Schema__Hashes__To__Html__Request                              import Schema__Hashes__To__Html__Request
 from mgraph_ai_service_mitmproxy.schemas.html.Schema__Html__To__Dict__Hashes__Request                        import Schema__Html__To__Dict__Hashes__Request
 from mgraph_ai_service_mitmproxy.schemas.html.safe_dict.Safe_Dict__Hash__To__Text                            import Safe_Dict__Hash__To__Text
-from mgraph_ai_service_mitmproxy.schemas.semantic_text.client.enums.Enum__Text__Transformation__Mode         import Enum__Text__Transformation__Mode
-from mgraph_ai_service_mitmproxy.service.html.HTML__Service__Client                                          import HTML__Service__Client
 from mgraph_ai_service_mitmproxy.service.cache.Proxy__Cache__Service                                         import Proxy__Cache__Service
+from mgraph_ai_service_mitmproxy.service.html.client.HTML__Service__Client                                   import HTML__Service__Client
 from mgraph_ai_service_mitmproxy.service.semantic_text.Semantic_Text__Service__Client                        import Semantic_Text__Service__Client
 from mgraph_ai_service_mitmproxy.schemas.semantic_text.client.Schema__Semantic_Text__Transformation__Request import Schema__Semantic_Text__Transformation__Request
 
 
 class HTML__Transformation__Service(Type_Safe):                                              # Orchestrates HTML transformations with semantic-text service
-    html_service_client      : HTML__Service__Client           = None                        # HTML Service HTTP client
-    semantic_text_client     : Semantic_Text__Service__Client  = None                        # Semantic Text Service HTTP client
-    cache_service            : Proxy__Cache__Service           = None                        # Cache service integration
+    html_service_client      : HTML__Service__Client                                         # HTML Service HTTP client
+    semantic_text_client     : Semantic_Text__Service__Client                                # Semantic Text Service HTTP client
+    cache_service            : Proxy__Cache__Service                                         # Cache service integration
 
-    def setup(self) -> 'HTML__Transformation__Service':                                      # Initialize service dependencies
-        self.html_service_client  = HTML__Service__Client().setup()
-        self.semantic_text_client = Semantic_Text__Service__Client()
-        self.cache_service        = Proxy__Cache__Service()#.setup()
-        return self
+    # def setup(self) -> 'HTML__Transformation__Service':                                      # Initialize service dependencies
+    #     #self.html_service_client  = HTML__Service__Client()#.setup()
+    #     self.semantic_text_client = Semantic_Text__Service__Client()
+    #     self.cache_service        = Proxy__Cache__Service()#.setup()
+    #     return self
 
     def transform_html(self, source_html   : str                                  ,          # Source HTML content
                              target_url    : str                                  ,          # Original URL (for cache key)

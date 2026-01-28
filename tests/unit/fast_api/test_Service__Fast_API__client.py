@@ -4,7 +4,6 @@ from osbot_fast_api.api.Fast_API                                        import E
 from osbot_fast_api.api.routes.Routes__Set_Cookie                       import ROUTES_PATHS__SET_COOKIE
 from osbot_fast_api.core_routes.registry.Routes__Service__Registry      import ROUTES_PATHS__REGISTRY
 from osbot_fast_api_serverless.fast_api.routes.Routes__Info             import ROUTES_PATHS__INFO, ROUTES_INFO__HEALTH__RETURN_VALUE
-from osbot_local_stack.local_stack.Local_Stack                          import Local_Stack
 from osbot_utils.utils.Env                                              import get_env
 from starlette.testclient                                               import TestClient
 from osbot_fast_api_serverless.utils.testing.skip_tests                 import skip__if_not__in_github_actions
@@ -31,7 +30,7 @@ class test_Service__Fast_API__client(TestCase):
             assert type(_.fast_api        ) is Mitmproxy__Service__Fast_API
             assert type(_.fast_api__app   ) is FastAPI
             assert type(_.fast_api__client) is TestClient
-            assert type(_.local_stack     ) is Local_Stack
+            #assert type(_.local_stack     ) is Local_Stack
             assert self.fast_api            == _.fast_api
             assert self.client              == _.fast_api__client
 

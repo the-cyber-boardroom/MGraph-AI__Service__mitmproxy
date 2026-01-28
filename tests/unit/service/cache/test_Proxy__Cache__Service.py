@@ -1,4 +1,5 @@
 from unittest                                                                                       import TestCase
+from osbot_fast_api.services.registry.Fast_API__Service__Registry                                   import fast_api__service__registry
 from mgraph_ai_service_cache_client.client.cache_service.register_cache_service                     import register_cache_service__in_memory
 from osbot_utils.helpers.cache.Cache__Hash__Generator                                               import Cache__Hash__Generator
 from osbot_utils.helpers.duration.decorators.capture_duration                                       import capture_duration
@@ -16,30 +17,7 @@ class test_Proxy__Cache__Service(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         with capture_duration() as duration:
-            # cache_config = Cache__Config(storage_mode=Enum__Cache__Storage_Mode.MEMORY)
-            #
-            # cls.serverless_config       = Serverless__Fast_API__Config(enable_api_key=False)
-            # cls.cache_service__fast_api = Cache_Service__Fast_API(config=cls.serverless_config,
-            #                                                       cache_service=Cache__Service(cache_config=cache_config))  # Inject configured service
-            #
-            # cls.fast_api_server         = Fast_API_Server(app=cls.cache_service__fast_api.app())
-            # cls.server_url              = cls.fast_api_server.url().rstrip("/")                              # note: the trailing / was causing issues with the auto-generated request code
-            # #cls.server_url              = "http://0.0.0.0:10017"                                            # note: to use a local server we need to also add the auth
-            #
-            # cls.server_config           = Cache__Service__Fast_API__Client__Config(base_url=cls.server_url)
-            # cls.fast_api_client         = Cache__Service__Fast_API__Client        (config=cls.server_config)
-            #
-            # cls.cache_service__fast_api.setup()
-            # cls.fast_api_server        .start()
-            #
-            # cls.client_config = Cache__Service__Fast_API__Client__Config(base_url = cls.server_url   ,
-            #                                                              fast_api_app = cls.cache_service__fast_api.app())
-            # cls.cache_client  = Cache__Service__Fast_API__Client         (config   = cls.client_config)
-            # cls.cache_config  = Schema__Cache__Config             (enabled  = True                ,
-            #                                                        base_url  = cls.server_url     ,
-            #                                                        namespace = "proxy-cache-tests",
-            #                                                        timeout   = 30)
-            # Create cache service instance
+            fast_api__service__registry.configs__save()
             register_cache_service__in_memory()
             cls.cache_config  = Schema__Cache__Config             (enabled  = True                ,
                                                                    namespace = "proxy-cache-tests")
@@ -48,9 +26,9 @@ class test_Proxy__Cache__Service(TestCase):
 
         assert duration.seconds < 5               # server setup and start should not take more than 0.5 (locally takes about 0.25)
 
-    # @classmethod
-    # def tearDownClass(cls) -> None:
-    #     cls.fast_api_server.stop()
+    @classmethod
+    def tearDownClass(cls) -> None:
+        fast_api__service__registry.configs__restore()
 
 
     # def test__setUpClass(self):

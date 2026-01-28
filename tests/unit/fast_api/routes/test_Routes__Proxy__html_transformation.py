@@ -1,45 +1,30 @@
-from unittest                                                                        import TestCase
-from osbot_utils.testing.__                                                          import __, __SKIP__
-from osbot_utils.testing.Temp_Env_Vars                                               import Temp_Env_Vars
-from osbot_utils.utils.Env                                                           import not_in_github_action
-from osbot_utils.utils.Http                                                          import GET_json
-from osbot_utils.utils.Misc                                                          import list_set
-from mgraph_ai_service_mitmproxy.fast_api.routes.Routes__Proxy                       import Routes__Proxy
-from mgraph_ai_service_mitmproxy.schemas.proxy.Schema__Proxy__Response_Data          import Schema__Proxy__Response_Data
-from mgraph_ai_service_mitmproxy.schemas.proxy.Schema__Proxy__Modifications          import Schema__Proxy__Modifications
-from tests.unit.Mitmproxy_Service__Fast_API__Test_Objs                               import (get__cache_service__fast_api_server,
-                                                                                             get__html_service__fast_api_server  )
-
+from unittest                                                                         import TestCase
+from mgraph_ai_service_html_graph.client.register_html_graph_service                  import register_html_graph_service__in_memory
+from osbot_fast_api.services.registry.Fast_API__Service__Registry                     import fast_api__service__registry
+from mgraph_ai_service_cache_client.client.cache_service.register_cache_service       import register_cache_service__in_memory
+from osbot_utils.testing.__                                                           import __, __SKIP__
+from osbot_utils.utils.Env                                                            import not_in_github_action
+from osbot_utils.utils.Misc                                                           import list_set
+from mgraph_ai_service_mitmproxy.fast_api.routes.Routes__Proxy                        import Routes__Proxy
+from mgraph_ai_service_mitmproxy.schemas.proxy.Schema__Proxy__Response_Data           import Schema__Proxy__Response_Data
+from mgraph_ai_service_mitmproxy.schemas.proxy.Schema__Proxy__Modifications           import Schema__Proxy__Modifications
+from mgraph_ai_service_mitmproxy.service.html.client.register_html_service            import register_html_service__in_memory
+from mgraph_ai_service_mitmproxy.service.semantic_text.register_semantic_text_service import register_semantic_text_service__in_memory
 
 class test_Routes__Proxy__html_transformation(TestCase):                       # Test HTML transformation workflow via Routes__Proxy
 
     @classmethod
     def setUpClass(cls):                                                        # ONE-TIME setup: start HTML and Cache services
-        with get__html_service__fast_api_server() as _:
-            cls.html_service_server   = _.fast_api_server
-            cls.html_service_base_url = _.server_url
-
-        with get__cache_service__fast_api_server() as _:
-            cls.cache_service_server   = _.fast_api_server
-            cls.cache_service_base_url = _.server_url
-
-        cls.html_service_server .start()
-        cls.cache_service_server.start()
-
-        env_vars = { 'AUTH__TARGET_SERVER__HTML_SERVICE__BASE_URL' : cls.html_service_base_url  ,
-                     'AUTH__TARGET_SERVER__CACHE_SERVICE__BASE_URL': cls.cache_service_base_url }
-        cls.temp_env_vars = Temp_Env_Vars(env_vars=env_vars).set_vars()
+        fast_api__service__registry.configs__save()
+        register_cache_service__in_memory        ()
+        register_html_service__in_memory         ()
+        register_html_graph_service__in_memory   ()
+        register_semantic_text_service__in_memory()
         cls.routes        = Routes__Proxy()
 
     @classmethod
-    def tearDownClass(cls):                                                     # Stop both servers
-        cls.html_service_server .stop()
-        cls.cache_service_server.stop()
-        cls.temp_env_vars.restore_vars()
-
-    def test__fast_api__servers(self):                                          # Verify both servers running
-        assert GET_json(self.html_service_base_url  + '/info/health') == {'status': 'ok'}
-        assert GET_json(self.cache_service_base_url + '/info/health') == {'status': 'ok'}
+    def tearDownClass(cls):                                                     # Restore global registry
+        fast_api__service__registry.configs__restore()
 
     def test__init__(self):                                                     # Test Routes__Proxy initialization
         with self.routes as _:
