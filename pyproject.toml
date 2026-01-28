@@ -15,13 +15,15 @@ packages    = [
 
 
 [tool.poetry.dependencies]
-python                         = "^3.12"
-osbot-fast-api-serverless      = "*"
-mgraph-ai-service-cache-client = "*"
-osbot-docker                   = "*"
+python                          = "^3.12"
+osbot-fast-api-serverless       = "*"
+mgraph-ai-service-cache-client  = "*"
+osbot-docker                    = "*"
 # to run in memory
-mgraph_ai_service_cache        = "*"
-mgraph_ai_service_html_graph   = "*"
+mgraph-ai-service-cache         = "*"
+mgraph-ai-service-html          = "*"
+mgraph-ai-service-html-graph    = "*"
+mgraph-ai-service-semantic-text = "*"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

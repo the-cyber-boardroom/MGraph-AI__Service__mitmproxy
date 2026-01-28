@@ -395,20 +395,52 @@ osbot-fast-api = "*"
 osbot-fast-api-serverless = "*"
 
 [[package]]
+name = "mgraph-ai-service-html"
+version = "0.6.25"
+description = "MGraph-AI__Service__Html"
+optional = false
+python-versions = "<4.0,>=3.12"
+groups = ["main"]
+files = [
+    {file = "mgraph_ai_service_html-0.6.25-py3-none-any.whl", hash = "sha256:638faeb23a9d0213a6b9f18392b138f502a96a920c14be17c89adb475cef7f50"},
+    {file = "mgraph_ai_service_html-0.6.25.tar.gz", hash = "sha256:abc62c043a45edc08d071e891ba16078690419f03603dd7ab091383a7a990d79"},
+]
+
+[package.dependencies]
+osbot-fast-api-serverless = "*"
+
+[[package]]
 name = "mgraph-ai-service-html-graph"
-version = "1.6.0"
+version = "1.8.0"
 description = "MGraph-AI__Service__Html__Graph"
 optional = false
 python-versions = "<4.0,>=3.12"
 groups = ["main"]
 files = [
-    {file = "mgraph_ai_service_html_graph-1.6.0-py3-none-any.whl", hash = "sha256:0dea3285d492b6d27a9d89b75316a374813c15514b863778b73813d0565fb3f7"},
-    {file = "mgraph_ai_service_html_graph-1.6.0.tar.gz", hash = "sha256:69c49cd9a965ece2ee455f563e039604329c1647f2081a641578beb937229f4b"},
+    {file = "mgraph_ai_service_html_graph-1.8.0-py3-none-any.whl", hash = "sha256:bf652668b63f7d4d3f75487f761ae37c5b0d3d9d3c74715128b9636dcfe75351"},
+    {file = "mgraph_ai_service_html_graph-1.8.0.tar.gz", hash = "sha256:b58d460094506e825b947f7cb7c23b8fc5d69d1e6e635d3f6ddbe99aed6ee02c"},
+]
+
+[package.dependencies]
+mgraph_ai_service_cache = "*"
+mgraph-ai-service-cache-client = "*"
+mgraph_db = "*"
+osbot-fast-api-serverless = "*"
+
+[[package]]
+name = "mgraph-ai-service-semantic-text"
+version = "0.7.0"
+description = "MGraph-AI__Service__Semantic_Text"
+optional = false
+python-versions = "<4.0,>=3.12"
+groups = ["main"]
+files = [
+    {file = "mgraph_ai_service_semantic_text-0.7.0-py3-none-any.whl", hash = "sha256:be45caa19d9dfbbcb498fb1988c12e134ee017c049bc29816acd4e541e4123b3"},
+    {file = "mgraph_ai_service_semantic_text-0.7.0.tar.gz", hash = "sha256:6ebb0f596f0b4d0d518a9f5f6de8b5926aa03479dd3c5d39e2be69e31f4d8dda"},
 ]
 
 [package.dependencies]
 mgraph-ai-service-cache-client = "*"
-mgraph_db = "*"
 osbot-fast-api-serverless = "*"
 
 [[package]]
@@ -929,4 +961,4 @@ standard = ["colorama (>=0.4)", "httptools (>=0.6.3)", "python-dotenv (>=0.13)",
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "86a0d3d90e7b4e98d7be9ede9e1d67d18e86a3a18f87398c6c478e9fc01eaa27"
+content-hash = "754323f5303657379f175cd40bdab4532bff7d062b19d23d97963952d5962d07"
