@@ -1,3 +1,0 @@
-[submodule "modules/OSBot-Docker"]
-	path = modules/OSBot-Docker
-	url = git@github.com:owasp-sbot/OSBot-Docker.git
