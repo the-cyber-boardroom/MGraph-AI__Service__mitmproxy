@@ -6,7 +6,7 @@ from osbot_docker.apis.API_Docker                                               
 from osbot_utils.type_safe.Type_Safe                                                    import Type_Safe
 from osbot_utils.utils.Objects                                                          import base_classes
 from osbot_utils.utils.Files                                                            import file_exists, path_combine
-from mgraph_ai_service_mitmproxy.service.mitmproxy.Mitmproxy__Create__Docker_Container import Mitmproxy__Create__Docker_Container, MITMPROXY__PYTHON_FILE
+from mgraph_ai_service_mitmproxy.service.mitmproxy.Mitmproxy__Create__Docker_Container  import Mitmproxy__Create__Docker_Container, MITMPROXY__PYTHON_FILE
 
 
 class test_Mitmproxy__Create__Docker_Container(TestCase):

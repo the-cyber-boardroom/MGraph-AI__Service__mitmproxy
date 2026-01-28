@@ -5,7 +5,8 @@ After=network.target
 [Service]
 Type=simple
 User=ubuntu
-ExecStart=/usr/bin/mitmweb --web-host 0.0.0.0 --web-port 8081 --set block_global=false -s /home/ubuntu/fastapi_interceptor.py
+EnvironmentFile=/etc/mitmproxy/.mitmproxy.env
+ExecStart=/usr/bin/mitmweb --proxyauth "${PROXY_AUTH_USER}:${PROXY_AUTH_PASS}" --web-host 0.0.0.0 --web-port 8081 --set block_global=false -s /home/ubuntu/fastapi_interceptor.py
 Restart=on-failure
 RestartSec=10
 StandardOutput=journal

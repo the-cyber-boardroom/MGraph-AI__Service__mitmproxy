@@ -87,6 +87,8 @@ RUN cd /home/mitmproxy && \
         FASTAPI_BASE_URL      = get_env('FASTAPI_BASE_URL'     )# 'http://host.docker.internal:10016/aaaa'
         FASTAPI_API_KEY_NAME  = get_env('FASTAPI_API_KEY_NAME' )
         FASTAPI_API_KEY_VALUE = get_env('FASTAPI_API_KEY_VALUE')
+        PROXY_AUTH_USER       = get_env('PROXY_AUTH_USER')
+        PROXY_AUTH_PASS       = get_env('PROXY_AUTH_PASS')
 
         dockerfile_content = f"""\
 FROM mitmproxy/mitmproxy:latest
@@ -101,6 +103,8 @@ COPY {MITMPROXY__PYTHON_FILE} /home/mitmproxy/{MITMPROXY__PYTHON_FILE}
 ENV FASTAPI_BASE_URL={FASTAPI_BASE_URL}
 ENV FASTAPI_API_KEY_NAME={FASTAPI_API_KEY_NAME}
 ENV FASTAPI_API_KEY_VALUE={FASTAPI_API_KEY_VALUE}
+ENV PROXY_AUTH_USER={PROXY_AUTH_USER}
+ENV PROXY_AUTH_PASS={PROXY_AUTH_PASS}
 
 
 # Set working directory
@@ -108,7 +112,7 @@ WORKDIR /home/mitmproxy
 
 # Default command to run mitmproxy with the script
 ENTRYPOINT ["mitmdump"]
-CMD [{confdir_setting}"--listen-port", "8080", "--script", "/home/mitmproxy/{MITMPROXY__PYTHON_FILE}", "--set", "block_global=false"]
+CMD [{confdir_setting}"--listen-port", "8080", "--proxyauth", "{PROXY_AUTH_USER}:{PROXY_AUTH_PASS}", "--script", "/home/mitmproxy/{MITMPROXY__PYTHON_FILE}", "--set", "block_global=false"]
 """
 
         # Write Dockerfile

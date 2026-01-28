@@ -3,6 +3,9 @@ from unittest                                                                   
 from osbot_aws.aws.ec2.EC2                                                         import EC2
 from osbot_utils.utils.Dev                                                         import pprint
 from osbot_utils.utils.Env                                                         import load_dotenv, get_env
+from osbot_utils.utils.Files import path_combine
+
+
 from mgraph_ai_service_mitmproxy.service.mitmproxy.Mitmproxy__Create__EC2_Instance import Mitmproxy__Create__EC2_Instance
 from mgraph_ai_service_mitmproxy.utils.Version                                     import version__mgraph_ai_service_mitmproxy
 
@@ -11,6 +14,8 @@ class test_Mitmproxy__Create__EC2_Instance(TestCase):
 
     @classmethod
     def setUpClass(cls):
+        dotenv__file = path_combine(__file__,'../.build.env')
+        load_dotenv(dotenv_path=dotenv__file, override=True)
         #pytest.skip("need manual execution")
         load_dotenv()
         cls.create_ec2_instance = Mitmproxy__Create__EC2_Instance()
