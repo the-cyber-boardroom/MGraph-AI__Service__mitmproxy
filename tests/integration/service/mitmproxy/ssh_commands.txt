@@ -11,8 +11,10 @@ sudo journalctl -u mitmproxy -n 100
 sudo journalctl -u mitmproxy --since "1 hour ago"
 
  EC2_IP=....
- url -x http://$EC2_IP:8080 https://httpbin.org/headers -k
+ curl -x http://$EC2__INSTANCE_IP:8080 https://httpbin.org/headers -k
  ssh -i $EC2__PATH_SSH_KEY_FILE  ubuntu@$EC2__INSTANCE_IP
+
+
 
 
 sudo systemctl daemon-reload

@@ -11,7 +11,7 @@ from mgraph_ai_service_mitmproxy.service.proxy.Proxy__Debug__Service            
 from mgraph_ai_service_mitmproxy.service.proxy.Proxy__Stats__Service                 import Proxy__Stats__Service
 from mgraph_ai_service_mitmproxy.service.proxy.Proxy__Headers__Service               import Proxy__Headers__Service
 from mgraph_ai_service_mitmproxy.service.proxy.Proxy__Cookie__Service                import Proxy__Cookie__Service
-
+from mgraph_ai_service_mitmproxy.service.proxy.inject.Proxy__Inject__Service         import Proxy__Inject__Service
 
 
 class Proxy__Response__Service(Type_Safe):                       # Main response processing orchestrator
@@ -21,6 +21,7 @@ class Proxy__Response__Service(Type_Safe):                       # Main response
     cookie_service              : Proxy__Cookie__Service                     # Cookie-based control
     html_transformation_service : HTML__Transformation__Service
     html_graph_handler          : HTML_Graph__Cache__Handler
+    inject_service              : Proxy__Inject__Service
 
     def setup(self):
         self.debug_service               = Proxy__Debug__Service        ().setup()
@@ -68,9 +69,14 @@ class Proxy__Response__Service(Type_Safe):                       # Main response
             else:
 
                 # Process HTML transformation based on mitm-mode cookie
-                transformed_html, transformation_headers = self.process_html_transformation(response_data   = response_data    ,
-                                                                                            request_headers = request_headers  )
-
+                result = self.process_html_transformation(response_data   = response_data    ,
+                                                          request_headers = request_headers  )
+                if len(result) == 3:                # todo: fixed this different return logic
+                    transformed_html, transformation_headers, headers_to_remove = result
+                    for h in (headers_to_remove or []):
+                        modifications.headers_to_remove.append(h)
+                else:
+                    transformed_html, transformation_headers = result
             if transformed_html:
                 modifications.modified_body = transformed_html
                 modifications.headers_to_add.update(transformation_headers)
@@ -181,6 +187,17 @@ class Proxy__Response__Service(Type_Safe):                       # Main response
                                           response_data  : Schema__Proxy__Response_Data,    # Response data with HTML
                                           request_headers: Dict[str, str]                   # Request headers with cookies
                                 ) -> tuple:                                                 # (transformed_html, headers_to_add)
+        try:
+            response_body = response_data.response.get("body", "")
+            target_url    = self._construct_target_url(response_data)
+            modified_html, inject_headers, csp_headers_to_remove = self.inject_service.inject_script_into_html(
+                                                                    html       = response_body,
+                                                                    target_url = target_url)
+            if modified_html:
+                return (modified_html, inject_headers, csp_headers_to_remove)
+        except Exception as error:
+            print(error)
+
         transformation_mode = self.cookie_service.get_mitm_mode(request_headers)        # Extract transformation mode from cookie
 
 
