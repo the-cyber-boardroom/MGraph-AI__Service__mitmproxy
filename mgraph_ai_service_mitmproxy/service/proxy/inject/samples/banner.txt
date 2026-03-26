@@ -1,0 +1,25 @@
+(() => {
+    const bar = document.createElement('div');
+    bar.id = 'mitm-inject-banner';
+    bar.style.cssText = `
+        position: fixed; top: 0; left: 0; right: 0; z-index: 999999;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff; font: bold 13px/1 system-ui, sans-serif;
+        padding: 8px 16px; text-align: center;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+        display: flex; align-items: center; justify-content: center; gap: 12px;
+    `;
+    bar.innerHTML = `
+        <span>🔬 MITM INJECT ACTIVE</span>
+        <span style="opacity:0.7">|</span>
+        <span style="font-weight:400">${location.hostname}</span>
+        <span style="opacity:0.7">|</span>
+        <span style="font-weight:400;font-size:11px">${new Date().toLocaleTimeString()}</span>
+        <button onclick="this.parentElement.remove()" style="
+            margin-left:auto; background:rgba(255,255,255,0.2); border:none;
+            color:#fff; padding:2px 8px; border-radius:3px; cursor:pointer; font-size:11px;
+        ">✕</button>
+    `;
+    document.body.prepend(bar);
+    document.body.style.marginTop = '36px';
+})();

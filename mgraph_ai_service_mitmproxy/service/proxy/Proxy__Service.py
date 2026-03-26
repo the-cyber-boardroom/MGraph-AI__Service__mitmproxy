@@ -52,7 +52,7 @@ class Proxy__Service(Type_Safe):                                      # Main pro
         path         = request_data.path
         method_emoji = self._get_method_emoji(request_data.method)
 
-        print(f"➡️ {admin_emoji:2} {method_emoji:2} {request_data.method:<6} {host:<30} {path}")
+        print(f"➡️ {admin_emoji:2} {method_emoji:2} {request_data.method:<6} {host:<30} {path[0:120]}")
 
 
 
