@@ -31,12 +31,10 @@ class Deploy__Service(Deploy__Serverless__Fast_API):
             # _.set_env_variable('WCF_SERVICE__AUTH__API_KEY__NAME'             , get_env('WCF_SERVICE__AUTH__API_KEY__NAME'  ))
             # _.set_env_variable('WCF_SERVICE__AUTH__API_KEY__VALUE'            , get_env('WCF_SERVICE__AUTH__API_KEY__VALUE' ))
 
-            _.set_env_variable('AUTH__SERVICE__AWS__COMPREHEND__BASE_URL'            , get_env('AUTH__SERVICE__AWS__COMPREHEND__BASE_URL'  ))
-            _.set_env_variable('AUTH__SERVICE__AWS__COMPREHEND__KEY_NAME'            , get_env('AUTH__SERVICE__AWS__COMPREHEND__KEY_NAME' ))
+            _.set_env_variable('AUTH__SERVICE__AWS__COMPREHEND__BASE_URL'            , get_env('AUTH__SERVICE__AWS__COMPREHEND__BASE_URL'   ))
+            _.set_env_variable('AUTH__SERVICE__AWS__COMPREHEND__KEY_NAME'            , get_env('AUTH__SERVICE__AWS__COMPREHEND__KEY_NAME'   ))
             _.set_env_variable('AUTH__SERVICE__AWS__COMPREHEND__KEY_VALUE'           , get_env('AUTH__SERVICE__AWS__COMPREHEND__KEY_VALUE'  ))
-
-
-
+            _.set_env_variable('CACHE__SERVICE__BUCKET_NAME'                         , get_env('CACHE__SERVICE__BUCKET_NAME'                ))
 
             _.add_folder(mgraph_ai_service_mitmproxy__admin_ui.path)
             _.add_folder(mgraph_ai_service_mitmproxy__console.path)
