@@ -196,24 +196,14 @@ class Proxy__Response__Service(Type_Safe):                       # Main response
                                           response_data  : Schema__Proxy__Response_Data,    # Response data with HTML
                                           request_headers: Dict[str, str]                   # Request headers with cookies
                                 ) -> tuple:                                                 # (transformed_html, headers_to_add)
-        # try:
-        #     response_body = response_data.response.get("body", "")
-        #     target_url    = self._construct_target_url(response_data)
-        #     modified_html, inject_headers, csp_headers_to_remove = self.inject_service.inject_script_into_html(
-        #                                                             html       = response_body,
-        #                                                             target_url = target_url)
-        #     if modified_html:
-        #         return (modified_html, inject_headers, csp_headers_to_remove)
-        # except Exception as error:
-        #     print(error)
+
         extra_sites_to_inject = ["www.bbc.co.uk"]                           # sites where setting the mitm-mode cookie doesn't work reliably
         host        = response_data.request.get('host')
         if host in extra_sites_to_inject:
             transformation_mode = Enum__HTML__Transformation_Mode.INJECT
+            print(">>>>>>>> transformation_mode", transformation_mode)
         else:
             transformation_mode = self.cookie_service.get_mitm_mode(request_headers)        # Extract transformation mode from cookie
-
-        print(">>>>>>>> transformation_mode", transformation_mode)
 
         if not transformation_mode.is_active():                                          # No transformation needed
             return (None, {})
@@ -227,6 +217,7 @@ class Proxy__Response__Service(Type_Safe):                       # Main response
             if "text/html" not in content_type.lower():
                 return (None, {}, [])
             target_url = self._construct_target_url(response_data)
+
             return self.inject_service.inject_script_into_html(
                 html=response_body, target_url=target_url)
 

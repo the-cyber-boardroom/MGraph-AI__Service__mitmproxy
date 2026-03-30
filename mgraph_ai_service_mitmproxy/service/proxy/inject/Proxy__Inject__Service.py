@@ -41,10 +41,6 @@ class Proxy__Inject__Service(Type_Safe):
 
     def extract_domain(self, host: str) -> str:
         """Extract the registrable domain from a host.
-
-        www.bbc.co.uk  → bbc.co.uk
-        news.bbc.co.uk → bbc.co.uk
-        www.bbc.com    → bbc.com
         """
         host = (host or '').lower().strip()
         if not host:
@@ -153,7 +149,7 @@ class Proxy__Inject__Service(Type_Safe):
         self._store_to_cache(domain, EMPTY_STUB)
         #self._script_cache[domain] = ''
         print(f"    🆕 Created inject stub for {domain} in S3 — edit to activate")
-        return ''
+        return EMPTY_STUB
 
     def _is_stub(self, script: str) -> bool:
         """Check if a script is just the empty stub."""
@@ -252,7 +248,6 @@ class Proxy__Inject__Service(Type_Safe):
         script_code = self.resolve_script(domain)
         if not script_code:
             return (None, {}, [])
-
         # Extract nonce and build script tag
         nonce = self.extract_nonce(html)
         nonce_attr = f' nonce="{nonce}"' if nonce else ''

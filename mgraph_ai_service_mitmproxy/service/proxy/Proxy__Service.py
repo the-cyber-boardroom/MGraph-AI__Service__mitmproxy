@@ -62,7 +62,7 @@ class Proxy__Service(Type_Safe):                                      # Main pro
         host         = response_data.request.get('host', '')
         path         = response_data.request.get('path', '')
         status_emoji = self._get_status_emoji(status)
-        print(f"⬅️ {status_emoji:2} ___{status:<} {host:<30} {path}")
+        print(f"⬅️ {status_emoji:2} ___{status:<} {host:<30} {path[0:100]}")
 
 
 

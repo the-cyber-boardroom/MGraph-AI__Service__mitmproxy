@@ -12,8 +12,11 @@ class Schema__Response__Processing_Result(Type_Safe):            # Complete resp
     final_status_code   : Safe_UInt__HTTP__Status                # Final HTTP status
     final_content_type  : Safe_Str__Http__Content_Type           # Final content type
     final_body          : str                                    # Final response body  # todo: change str to Safe_Str_* class
+    # final_headers       : Dict[Safe_Str__Http__Header__Name,
+    #                            Safe_Str__Http__Header__Value]    # Final response headers
+
     final_headers       : Dict[Safe_Str__Http__Header__Name,
-                               Safe_Str__Http__Header__Value]    # Final response headers
+                               str                          ]    # todo: fix this (some websites had values bigger than 8k , one had 10k)
     content_was_modified: bool            = False                # Whether content was modified
     response_overridden : bool            = False                # Whether response was overridden
     processing_error    : Optional[Safe_Str__Text]   = None      # Error message if processing failed
