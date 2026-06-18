@@ -13,5 +13,5 @@ jobs:
       release_type        : 'minor'
       target_deploy       : 'dev'
       should_increment_tag: true
-      deploy_to_aws       : true
+      deploy_to_aws       : false        # Lambda publish disabled; service now ships as a Docker Hub image
     secrets: inherit
