@@ -16,6 +16,7 @@ packages    = [
 
 [tool.poetry.dependencies]
 python                          = "^3.12"
+httpx                           = "*"
 osbot-fast-api-serverless       = "*"
 mgraph-ai-service-cache-client  = "*"
 osbot-docker                    = "*"
