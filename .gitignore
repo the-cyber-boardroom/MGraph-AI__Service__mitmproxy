@@ -211,3 +211,6 @@ mitmproxy-ca-cert.pem
 # Local development env files (contain secrets - use the .example templates)
 .local-server.env
 .build.env
+
+# Local mitmproxy CA certificates (generated on first container start, contains the CA private key)
+/certs/

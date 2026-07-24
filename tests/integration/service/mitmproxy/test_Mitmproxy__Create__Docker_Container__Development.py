@@ -38,22 +38,21 @@ class test_Mitmproxy__Create__Docker_Container__Development(TestCase):
         print("Creating Persistent Mitmproxy Container for Development")
         print("="*60)
 
-        # Setup paths for existing certificates
-        certs_backup_path = path_combine(mgraph_ai_service_mitmproxy.path, '../_ec2_files/mitmproxy-certs-backup.tar.gz')
-        cert_pem_path     = path_combine(mgraph_ai_service_mitmproxy.path,'../_ec2_files/mitmproxy-ca-cert.pem')
+        # Local certs folder (gitignored) mounted as mitmproxy's confdir, so the CA survives container rebuilds
+        local_certs_folder = path_combine(mgraph_ai_service_mitmproxy.path, '../certs')
+        ca_cert_path       = path_combine(local_certs_folder, 'mitmproxy-ca-cert.pem')
 
-        # Verify certificates exist
-        if file_exists(certs_backup_path):
-            print(f"✓ Found certificate backup: {certs_backup_path}")
-        if file_exists(cert_pem_path):
-            print(f"✓ Found certificate PEM: {cert_pem_path}")
+        if file_exists(ca_cert_path):
+            print(f"✓ Reusing existing CA from: {local_certs_folder}")
+        else:
+            print(f"→ No CA found in {local_certs_folder} - mitmproxy will generate one on first start")
 
         # Create mitmproxy instance with fixed name for easy identification
-        mitmproxy_docker = Mitmproxy__Create__Docker_Container(build_image_name  = self.DEVELOPMENT_IMAGE_NAME    ,
-                                                               container_name    = self.DEVELOPMENT_CONTAINER_NAME,
-                                                               proxy_port        = self.DEVELOPMENT_PROXY_PORT    ,
-                                                               web_port          = self.DEVELOPMENT_WEB_PORT      ,
-                                                               certificates_path = certs_backup_path              )
+        mitmproxy_docker = Mitmproxy__Create__Docker_Container(build_image_name   = self.DEVELOPMENT_IMAGE_NAME    ,
+                                                               container_name     = self.DEVELOPMENT_CONTAINER_NAME,
+                                                               proxy_port         = self.DEVELOPMENT_PROXY_PORT    ,
+                                                               web_port           = self.DEVELOPMENT_WEB_PORT      ,
+                                                               local_certs_folder = local_certs_folder             )
 
         # Check if container already exists
         existing_containers = mitmproxy_docker.api_docker.containers_all__by_name()
@@ -70,10 +69,10 @@ class test_Mitmproxy__Create__Docker_Container__Development(TestCase):
 
             mitmproxy_docker.container = container
         else:
-            # Create new container with custom script AND certificates
-            print("\n→ Creating container with certificates...")
+            # Create new container with custom script; certs come from the mounted local_certs_folder
+            print("\n→ Creating container...")
             container = mitmproxy_docker.create_container(with_custom_script=True,
-                                                          with_certificates=True)
+                                                          with_certificates=False)
 
             assert container is not None
             print(f"✓ Container created: {container.short_id()}")
@@ -81,7 +80,7 @@ class test_Mitmproxy__Create__Docker_Container__Development(TestCase):
             print("\n→ Starting container...")
             started = mitmproxy_docker.start(wait_for_ready=True)
             assert started is True
-            print("✓ Container started successfully with your existing certificates!")
+            print("✓ Container started successfully!")
 
         # Display connection information
         print("\n" + "="*60)
@@ -93,6 +92,7 @@ class test_Mitmproxy__Create__Docker_Container__Development(TestCase):
         print(f"\nProxy Endpoints:")
         print(f"  HTTP/HTTPS Proxy: http://localhost:{self.DEVELOPMENT_PROXY_PORT}")
         print(f"  Web Interface:    http://localhost:{self.DEVELOPMENT_WEB_PORT}")
+        print(f"  CA certificate:   {ca_cert_path}")
 
         # Test proxy connection
         print("\n→ Testing proxy connection...")
