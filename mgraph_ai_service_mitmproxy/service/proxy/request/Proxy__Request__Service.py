@@ -15,6 +15,8 @@ import json
 
 # NOTE: this is the main entry point from the Mitmproxy
 
+HEADER__MITM_DEBUG = 'x-mitm-debug'                                  # Request header that (like the mitm-debug cookie) opts in to the upstream debug headers
+
 class Proxy__Request__Service(Type_Safe):                            # Request processing orchestration
     stats_service       : Proxy__Stats__Service                          # Statistics tracking
     content_service     : Proxy__Content__Service                        # Content processing
@@ -55,22 +57,23 @@ class Proxy__Request__Service(Type_Safe):                            # Request p
             print(f"      🎯   Returning CACHED response (enabled via mitm-cache cookie)")
             return modifications
 
-        # Add custom headers
-        modifications.headers_to_add = { "x-mgraph-proxy"          : "v1.0"                                          ,
-                                         "x-request-id"            : f"req-{self.stats_service.stats.total_requests}",
-                                         "x-processed-by"          : "FastAPI-Proxy"                                 ,
-                                         "x-processed-at"          : datetime.utcnow().isoformat()                   ,
-                                         "x-stats-total-requests"  : str(self.stats_service.stats.total_requests)    ,
-                                         "y-version-service"       : version__mgraph_ai_service_mitmproxy            ,
-                                         "y-version-interceptor"   : request_data.version                            }
+        # Add debug/tracking headers, but only when explicitly opted in - these go to the upstream server and fingerprint the proxy
+        if self.debug_headers_enabled(request_data.headers):
+            modifications.headers_to_add = { "x-mgraph-proxy"          : "v1.0"                                          ,
+                                             "x-request-id"            : f"req-{self.stats_service.stats.total_requests}",
+                                             "x-processed-by"          : "FastAPI-Proxy"                                 ,
+                                             "x-processed-at"          : datetime.utcnow().isoformat()                   ,
+                                             "x-stats-total-requests"  : str(self.stats_service.stats.total_requests)    ,
+                                             "y-version-service"       : version__mgraph_ai_service_mitmproxy            ,
+                                             "y-version-interceptor"   : request_data.version                            }
 
-        debug_params = self.cookie_service.convert_to_debug_params(request_data.headers)           # Extract cookie-based debug params and merge with path-based params
+            debug_params = self.cookie_service.convert_to_debug_params(request_data.headers)       # Extract cookie-based debug params and merge with path-based params
 
-        if self.cookie_service.has_any_proxy_cookies(request_data.headers):                                     # Add cookie summary to headers if any proxy cookies present
-            cookie_summary = self.cookie_service.get_cookie_summary(request_data.headers)
-            modifications.headers_to_add["x-proxy-cookies"] = json.dumps(cookie_summary)
+            if self.cookie_service.has_any_proxy_cookies(request_data.headers):                                 # Add cookie summary to headers if any proxy cookies present
+                cookie_summary = self.cookie_service.get_cookie_summary(request_data.headers)
+                modifications.headers_to_add["x-proxy-cookies"] = json.dumps(cookie_summary)
 
-        modifications.headers_to_add["x-debug-params"] = json.dumps(debug_params)
+            modifications.headers_to_add["x-debug-params"] = json.dumps(debug_params)
 
         if "/blocked" in request_data.path:                                                             # Block certain paths
             modifications.block_request = True
@@ -81,6 +84,15 @@ class Proxy__Request__Service(Type_Safe):                            # Request p
                 modifications.headers_to_remove.append(header)
 
         return modifications
+
+    def debug_headers_enabled(self, headers: Dict[str, str]                     # Incoming request headers
+                              ) -> bool:                                        # True when upstream debug headers should be added
+        if self.cookie_service.is_debug_enabled(headers):                       # mitm-debug cookie (browser-friendly opt-in)
+            return True
+        for name, value in (headers or {}).items():                             # x-mitm-debug header (curl/script-friendly opt-in)
+            if name.lower() == HEADER__MITM_DEBUG:
+                return str(value).lower() in ('true', '1', 'yes', 'on')
+        return False
 
     def handle_admin_request(self,request_data : Schema__Proxy__Request_Data    # Admin request data
                              ) -> Schema__Proxy__Modifications:                 # Modifications with cached response

@@ -34,7 +34,7 @@ class Test_Proxy__Request__Service__Admin_Integration(TestCase):
         request_data = Schema__Proxy__Request_Data(method       = 'GET'             ,
                                                     host         = 'example.com'     ,
                                                     path         = '/regular/path'   ,
-                                                    headers      = {}                ,
+                                                    headers      = {'cookie': 'mitm-debug=true'},        # Opt in to the upstream debug headers
                                                     stats        = {}                ,
                                                     version      = 'v1.0.0'           )
 
