@@ -1,330 +1,217 @@
-# MGraph AI Service mitmproxy
+# MGraph AI Service — mitmproxy
 
 [![Current Release](https://img.shields.io/badge/release-v0.8.34-blue)](https://github.com/the-cyber-boardroom/MGraph-AI__Service__mitmproxy/releases)
 [![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.116.1-009688)](https://fastapi.tiangolo.com/)
-[![AWS Lambda](https://img.shields.io/badge/AWS-Lambda-orange)](https://aws.amazon.com/lambda/)
+[![Docker](https://img.shields.io/badge/Docker-diniscruz%2Fmgraph--ai--service--mitmproxy-2496ED)](https://hub.docker.com/r/diniscruz/mgraph-ai-service-mitmproxy)
 [![License](https://img.shields.io/badge/license-Apache%202.0-green)](LICENSE)
 [![CI Pipeline - DEV](https://github.com/the-cyber-boardroom/MGraph-AI__Service__mitmproxy/actions/workflows/ci-pipeline__dev.yml/badge.svg)](https://github.com/the-cyber-boardroom/MGraph-AI__Service__mitmproxy/actions)
 
-A production-ready FastAPI microservice template for building MGraph-AI services. This template provides a complete scaffold with CI/CD pipeline, AWS Lambda deployment, and type-safe architecture.
+An intelligent **man-in-the-middle (MITM) HTTP proxy** that rewrites the text
+content of web pages as you browse — masking, hashing, sentiment-filtering, or
+injecting client-side filter scripts — all controlled by cookies.
 
-## 🎯 Purpose
+The actual [mitmproxy](https://mitmproxy.org/) process runs a thin interceptor
+addon ([`_ec2_files/fastapi_interceptor.py`](_ec2_files/fastapi_interceptor.py))
+that forwards every request/response to **this** FastAPI service, which makes
+all the decisions. The service embeds its downstream MGraph-AI services
+(cache, html, html-graph, semantic-text) **in-memory** (`run_in_memory = True`),
+so the published container is fully self-contained.
 
-This repository serves as the base template for creating new MGraph-AI services. It includes:
-- ✅ Complete FastAPI application structure  
-- ✅ Multi-stage CI/CD pipeline (dev, qa, prod)
-- ✅ AWS Lambda deployment configuration
-- ✅ Type-safe architecture using OSBot-Utils
-- ✅ Comprehensive test coverage
-- ✅ API key authentication
-- ✅ Health check and monitoring endpoints
+> **Deeper docs:** [`docs/architecture.md`](docs/architecture.md) and the
+> versioned design briefs under [`docs/dev/`](docs/dev/) — in particular the
+> [technical architecture guide](docs/dev/llm-briefs/).
 
-**Note**: This is a template repository. To create your own service, see [Creating Services from Template](docs/dev/non-functional-requirements/version-1_0_0/README.md).
+## 🎯 What it does
 
-## 📚 Creating a New Service
+For every intercepted `text/html` response, the service runs a 3-step
+transformation pipeline (HTML → hash map → transform → rebuild HTML) that
+preserves page structure while changing the text. What it does is chosen by the
+`mitm-mode` cookie:
 
-To create a new service from this template, see [Creating Services from MGraph-AI__Service__mitmproxy](docs/dev/non-functional-requirements/version-1_0_0/README.md).
+| `mitm-mode` cookie | Effect | Needs |
+|---|---|---|
+| `off` | Pass through unchanged | — |
+| `hashes` | Replace all text with hashes | — |
+| `xxx` | Replace all text with `xxx` | — |
+| `abcde-by-size` | Replace text with letters sized by word length | — |
+| `roundtrip` | Parse → rebuild (structure validation) | — |
+| `xxx-negative[-N]` | Mask only negative-sentiment text | AWS Comprehend |
+| `inject` | Inject a per-domain JS filter script (from S3) | S3 bucket |
 
-## 🚀 Features
+Behaviour is driven entirely by `mitm-*` cookies (not URL params). See
+[`Enum__HTML__Transformation_Mode`](mgraph_ai_service_mitmproxy/schemas/html/Enum__HTML__Transformation_Mode.py)
+for the full list.
 
-- **Type-Safe Architecture**: Built on OSBot-Utils type safety framework
-- **Multi-Stage Deployment**: Automated CI/CD pipeline for dev, QA, and production
-- **AWS Lambda Ready**: Optimized for serverless deployment
-- **API Key Authentication**: Secure access control
+## 🚀 Quick Start
 
-## 📋 Table of Contents
+There are three ways to run this locally, from easiest to most hands-on.
 
-- [Quick Start](#-quick-start)
-- [Installation](#-installation)
-- [API Documentation](#-api-documentation)
-- [Configuration](#-configuration)
-- [Development](#-development)
-- [Testing](#-testing)
-- [Deployment](#-deployment)
-- [Security](#-security)
-- [Contributing](#-contributing)
-- [License](#-license)
+### Option A — Docker Compose (recommended)
 
-## 🎯 Quick Start
-
-### Local Development
+Runs the **published Docker Hub image** plus a mitmproxy container wired to it.
+No Python environment needed, and it's the quickest way to verify a deployed
+image or to start using the proxy as another dev/agent.
 
 ```bash
-# Clone the repository
 git clone https://github.com/the-cyber-boardroom/MGraph-AI__Service__mitmproxy.git
 cd MGraph-AI__Service__mitmproxy
 
-# Install dependencies
-pip install -r requirements-test.txt
-pip install -e .
+docker compose up            # pulls both images and starts them
+```
 
-# Set environment variables
+That's it — `docker compose up` works with no configuration. It starts:
+
+- **HTTP/HTTPS proxy** on `localhost:8080` (auth: `mitm-user` / `mitm-pass`)
+- **mitmweb UI** on http://localhost:8081
+- **FastAPI service** on http://localhost:10011 (`/docs`, `/console`)
+- **CA certificate** written to `./certs/mitmproxy-ca-cert.pem` (stable across restarts)
+
+To override the image version, ports, credentials, or add S3 credentials for
+`inject`/sentiment modes, copy `.env.example` to `.env` and edit it:
+
+```bash
+cp .env.example .env         # then edit, e.g. SERVICE_VERSION=v0.8.34
+docker compose up
+```
+
+Pin `SERVICE_VERSION` to a specific release to test that exact deployed image.
+Run `docker compose pull` to fetch newer images, and `docker compose down` to stop.
+
+Then [point your browser at the proxy](#-using-it-from-a-browser).
+
+### Option B — Service from source + mitmproxy in Docker
+
+Runs the FastAPI service locally with `uvicorn` (hot-reload) and a mitmproxy
+container built from the interceptor. Best when you're **changing the service
+code**. Full walk-through in [`docs/dev/running-locally.md`](docs/dev/running-locally.md).
+
+```bash
+cp .local-server.env.example .local-server.env                                              # edit values
+cp tests/integration/service/mitmproxy/.build.env.example tests/integration/service/mitmproxy/.build.env
+
+./scripts/run-locally.sh              # terminal 1: FastAPI service on :10016
+./scripts/run-mitmproxy-locally.sh    # terminal 2: mitmproxy container on :8080 / :8081
+```
+
+### Option C — Service only
+
+Just the ASGI app, no proxy — useful for hitting the API directly or the web console.
+
+```bash
+pip install -e . && pip install -r requirements-test.txt
 export FAST_API__AUTH__API_KEY__NAME="x-api-key"
-export FAST_API__AUTH__API_KEY__VALUE="your-secret-key"
-
-# Run locally
-./scripts/run-locally.sh
-# or
-uvicorn mgraph_ai_service_mitmproxy.fast_api.lambda_handler:app --reload --host 0.0.0.0 --port 10011
+export FAST_API__AUTH__API_KEY__VALUE="local-dev-key"
+./scripts/run-locally.sh              # http://localhost:10016/docs
 ```
 
-### Basic Usage
+## 🌐 Using it from a browser
 
-```python
-import requests
+Once the proxy is up (Option A or B):
 
-# Set up authentication
-headers = {"x-api-key": "your-secret-key"}
-base_url = "http://localhost:10011"
+1. **Set the proxy** — Firefox → Settings → Network Settings → Manual proxy:
+   `localhost` port `8080`, and tick *"Also use this proxy for HTTPS"*.
+2. **Log in** — when prompted, use the proxy credentials
+   (`mitm-user` / `mitm-pass` by default; the `PROXY_AUTH_*` values in `.env`).
+3. **Install the CA** — import `certs/mitmproxy-ca-cert.pem`
+   (Firefox → Settings → Certificates → Authorities → Import), or browse to
+   http://mitm.it via the proxy. Only needed once — the CA is stable across restarts.
+4. **Pick a mode** — set a `mitm-mode` cookie on the site you're viewing
+   (e.g. `mitm-mode=hashes`). The web console at http://localhost:10011/console
+   (or `:10016/console` for Option B) helps drive this.
 
-# Check service health
-response = requests.get(f"{base_url}/health", headers=headers)
-print(response.json())
+> The interceptor only forwards `GET` + `text/html` responses to the service;
+> assets and other methods pass through untouched.
 
-# Get service info
-response = requests.get(f"{base_url}/info/version", headers=headers)
-print(response.json())
-```
+## 📖 API
 
-## 📦 Installation
-
-### Prerequisites
-
-- Python 3.12+
-- AWS CLI (for deployment)
-- Docker (for LocalStack testing)
-
-### Using Poetry
-
-```bash
-# Install poetry if not already installed
-pip install poetry
-
-# Install dependencies
-poetry install
-
-# Activate virtual environment
-poetry shell
-```
-
-### Using pip
-
-```bash
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements-test.txt
-pip install -e .
-```
-
-## 📖 API Documentation
-
-### Interactive API Documentation
-
-Once the service is running, access the interactive API documentation at:
-- Swagger UI: http://localhost:10011/docs
-- ReDoc: http://localhost:10011/redoc
-
-### Endpoints Overview
-
-#### Health Endpoints
+With the service running, the interactive docs are at `/docs` (Swagger) and
+`/redoc`. Key endpoints:
 
 | Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/health` | GET | Service health check |
-| `/health/detailed` | GET | Detailed health status |
+|---|---|---|
+| `/proxy/process-request` | POST | Called by the interceptor per request |
+| `/proxy/process-response` | POST | Called by the interceptor per response (transform / inject) |
+| `/proxy/get-proxy-stats` | GET | Proxy statistics |
+| `/proxy/reset-proxy-stats` | POST | Reset statistics |
+| `/cache/health`, `/cache/stats`, `/cache/config` | GET | Cache introspection |
+| `/info/health`, `/info/version` | GET | Service health / version |
+| `/console` | GET | Static web console (mitmproxy simulator) |
 
-#### Information Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/info/version` | GET | Get service version |
-| `/info/status` | GET | Get service status |
+All endpoints require the API key header (`x-api-key` by default).
 
 ## ⚙️ Configuration
 
-### Environment Variables
-
 | Variable | Description | Required | Default |
-|----------|-------------|----------|---------|
-| `FAST_API__AUTH__API_KEY__NAME` | Header name for API key | Yes | - |
-| `FAST_API__AUTH__API_KEY__VALUE` | API key value | Yes | - |
-| `AWS_REGION` | AWS region (triggers Lambda mode) | No | - |
-| `DEBUG` | Enable debug logging | No | false |
+|---|---|---|---|
+| `FAST_API__AUTH__API_KEY__NAME` | Header name for the API key | Yes | — |
+| `FAST_API__AUTH__API_KEY__VALUE` | API key value | Yes | — |
+| `CACHE__SERVICE__BUCKET_NAME` | S3 bucket for cache + inject scripts | For `inject` | — |
+| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` / `AWS_DEFAULT_REGION` | AWS creds for S3 | For `inject` | — |
+| `AUTH__SERVICE__AWS__COMPREHEND__*` | Comprehend proxy for sentiment modes | For `xxx-negative` | — |
+| `AWS_REGION` | **Triggers Lambda mode** — do not set for local/Docker runs | No | — |
 
-### Configuration File
+> ⚠️ Use `AWS_DEFAULT_REGION`, **not** `AWS_REGION`, for local/Docker runs:
+> the presence of `AWS_REGION` makes `lambda_handler.py` try to load AWS Lambda
+> dependency layers.
 
-Create a `.env` file for local development:
+The interceptor side (inside the mitmproxy container) reads
+`FASTAPI_BASE_URL`, `FASTAPI_API_KEY_NAME`, `FASTAPI_API_KEY_VALUE`.
 
-```env
-FAST_API__AUTH__API_KEY__NAME=x-api-key
-FAST_API__AUTH__API_KEY__VALUE=development-key-12345
+## 🐳 Docker image
+
+CI builds and publishes a multi-arch (amd64 + arm64) image to Docker Hub:
+
+```bash
+docker run -p 10011:10011 \
+    -e FAST_API__AUTH__API_KEY__NAME=x-api-key \
+    -e FAST_API__AUTH__API_KEY__VALUE=local-dev-key \
+    diniscruz/mgraph-ai-service-mitmproxy:latest
 ```
 
-## 🛠️ Development
-
-### Project Structure
-
-```
-mgraph_ai_service_mitmproxy/
-├── fast_api/
-│   ├── lambda_handler.py      # AWS Lambda entry point
-│   ├── Service__Fast_API.py   # FastAPI application setup
-│   └── routes/               # API endpoint definitions
-├── service/
-│   └── info/               # Service information
-├── utils/
-│   ├── deploy/             # Deployment utilities
-│   └── Version.py          # Version management
-└── config.py               # Service configuration
-```
-
-### Adding New Endpoints
-
-1. Create a new route class in `fast_api/routes/`:
-
-```python
-from osbot_fast_api.api.Fast_API_Routes import Fast_API_Routes
-
-class Routes__MyFeature(Fast_API_Routes):
-    tag = 'my-feature'
-    
-    def my_endpoint(self, param: str = "default"):
-        return {"result": param}
-    
-    def setup_routes(self):
-        self.add_route_get(self.my_endpoint)
-```
-
-2. Register in `Service__Fast_API`:
-
-```python
-def setup_routes(self):
-    # ... existing routes
-    self.add_routes(Routes__MyFeature)
-```
+Docker Hub push is controlled per-branch (see [CI/CD](#-cicd)) via the
+`push_to_docker_hub` pipeline input.
 
 ## 🧪 Testing
 
-### Running Tests
-
 ```bash
-# Run all tests
-pytest
-
-# Run with coverage
-pytest --cov=mgraph_ai_service_mitmproxy
-
-# Run specific test file
-pytest tests/unit/fast_api/test_Service__Fast_API__client.py
-
-# Run integration tests (requires LocalStack)
-pytest tests/integration/
+pytest                                       # all tests
+pytest --cov=mgraph_ai_service_mitmproxy     # with coverage
+pytest tests/unit                            # unit tests (what CI runs, against LocalStack)
 ```
-
-### Test Structure
 
 ```
 tests/
-├── unit/                    # Unit tests
-│   ├── fast_api/           # API tests
-│   └── service/            # Service tests
-└── deploy_aws/             # Deployment tests
+├── unit/           # unit tests (run in CI against LocalStack: s3, lambda, iam, logs, ec2)
+├── integration/    # Docker / EC2 container creation (needs Docker/AWS)
+└── deploy_aws/     # deployment tests (these actually deploy)
 ```
 
-## 🚀 Deployment
+## 🚀 CI/CD
 
-### AWS Lambda Deployment
+Thin per-branch workflows call the reusable
+[`ci-pipeline.yml`](.github/workflows/ci-pipeline.yml): run tests → increment
+git tag → (optional) deploy to AWS Lambda → (optional) build & push the Docker image.
 
-The service includes automated deployment scripts for multiple environments:
+| Branch | Tests | Docker Hub push | AWS Lambda |
+|---|---|---|---|
+| `dev` push | ✅ | ❌ (opt-in via manual run checkbox) | ❌ |
+| `main` push | ✅ | ✅ | ✅ |
+| `prod` (manual) | ✅ | ✅ | ✅ |
 
-```bash
-# Deploy to development
-pytest tests/deploy_aws/test_Deploy__Service__to__dev.py
-
-# Deploy to QA
-pytest tests/deploy_aws/test_Deploy__Service__to__qa.py
-
-# Deploy to production (manual trigger)
-# Use GitHub Actions workflow
-```
-
-### CI/CD Pipeline
-
-The project uses GitHub Actions for continuous deployment:
-
-1. **Development Branch** (`dev`)
-   - Runs tests with LocalStack
-   - Deploys to dev environment
-   - Increments minor version
-
-2. **Main Branch** (`main`)
-   - Runs comprehensive test suite
-   - Deploys to QA environment
-   - Increments major version
-
-3. **Production** (manual)
-   - Requires manual workflow trigger
-   - Deploys to production environment
-
-## 🔒 Security
-
-### Authentication
-
-API key authentication is required for all endpoints:
-
-```python
-headers = {"x-api-key": "your-secret-key"}
-```
-
-### Best Practices
-
-1. **Never commit secrets** - Use environment variables
-2. **Rotate API keys** - Regular key rotation
-3. **Use HTTPS** - Always encrypt in transit
-4. **Monitor access** - Log and audit API usage
-
-## 🤝 Contributing
-
-We welcome contributions! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Development Guidelines
-
-- Write tests for new features
-- Update documentation
-- Follow existing code style
-- Add type annotations
-- Consider security implications
+To publish a dev image on demand: Actions → *CI Pipeline - DEV* → *Run workflow*
+→ tick *"Also push the Docker image to Docker Hub"*.
 
 ## 🔗 Related Projects
 
-- [OSBot-Utils](https://github.com/owasp-sbot/OSBot-Utils) - Core utilities library
-- [OSBot-AWS](https://github.com/owasp-sbot/OSBot-AWS) - AWS integration layer
-- [OSBot-Fast-API](https://github.com/owasp-sbot/OSBot-Fast-API) - FastAPI utilities
+- [OSBot-Utils](https://github.com/owasp-sbot/OSBot-Utils) — type-safe core utilities
+- [OSBot-Fast-API](https://github.com/owasp-sbot/OSBot-Fast-API) — FastAPI utilities
+- [OSBot-AWS](https://github.com/owasp-sbot/OSBot-AWS) — AWS integration layer
 
 ## 📄 License
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Built with [FastAPI](https://fastapi.tiangolo.com/)
-- Deployed on [AWS Lambda](https://aws.amazon.com/lambda/)
-
-## 📞 Support
-
-- 🐛 Issues: [GitHub Issues](https://github.com/the-cyber-boardroom/MGraph-AI__Service__mitmproxy/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/the-cyber-boardroom/MGraph-AI__Service__mitmproxy/discussions)
+Apache License 2.0 — see [LICENSE](LICENSE).
 
 ---
 
-Created and maintained by [The Cyber Boardroom](https://github.com/the-cyber-boardroom) team
+Created and maintained by [The Cyber Boardroom](https://github.com/the-cyber-boardroom) team.
