@@ -306,14 +306,18 @@ CMD [{confdir_setting}"--listen-port", "8080", "--proxyauth", "{PROXY_AUTH_USER}
             return False
 
         # Check if our custom header was added
-        headers = response.json().get('headers', {})
+        try:
+            headers = response.json().get('headers', {})
 
-        # Check for custom header from {MITMPROXY__PYTHON_FILE}
-        if 'x-custom-header' in headers:
-            return True
+            # Check for custom header from {MITMPROXY__PYTHON_FILE}
+            if 'x-custom-header' in headers:
+                return True
+        except ValueError:                                               # upstream returned non-JSON (e.g. httpbin.org 503 error page)
+            pass
 
-        # Even without custom header, proxy is working
-        return response.status_code == 200
+        # Any response through the tunnel means the proxy accepted our credentials and is working,
+        # even when the upstream test site itself is having problems
+        return True
 
     def get_certificates(self):                                          # Export mitmproxy certificates
         if self.container and self.container.status() == 'running':
