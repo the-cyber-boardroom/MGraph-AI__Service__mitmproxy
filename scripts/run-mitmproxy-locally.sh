@@ -44,6 +44,14 @@ if [ ! -f "$BUILD_ENV_FILE" ]; then
     exit 1
 fi
 
+# the env loader crashes on any line that is not blank, a # comment, or KEY=VALUE - catch that here with a clear message
+INVALID_LINES=$(awk '{ line=$0; sub(/^[ \t]+/, "", line); if (line == "" || line ~ /^#/) next; if (index(line, "=") == 0) print "   line " FNR ": " $0 }' "$BUILD_ENV_FILE")
+if [ -n "$INVALID_LINES" ]; then
+    echo "❌ $BUILD_ENV_FILE has lines that are not KEY=VALUE (comments must start with #):"
+    echo "$INVALID_LINES"
+    exit 1
+fi
+
 echo "→ Building and starting the mitmproxy container (proxy: localhost:8080, web UI: localhost:8081)..."
 pytest "${DEV_TEST_FILE}::${DEV_TEST_CLASS}::test_create_persistent_container_for_development" -s
 
