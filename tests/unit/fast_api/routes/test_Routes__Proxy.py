@@ -26,6 +26,10 @@ class test_Routes__Proxy(TestCase):
 
             with self.routes.process_request(request) as modifications:
                 assert type(modifications) is Schema__Proxy__Modifications
+                assert modifications.headers_to_add == {}                       # Upstream debug headers are opt-in via mitm-debug cookie / x-mitm-debug header
+
+            request.headers = {'cookie': 'mitm-debug=true'}                     # With the opt-in the debug headers are added
+            with self.routes.process_request(request) as modifications:
                 assert modifications.headers_to_add != {}
 
     def test_reset_proxy_stats(self):                                # Test stats reset

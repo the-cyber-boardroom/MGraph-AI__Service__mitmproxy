@@ -54,12 +54,11 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
 
         assert 'headers_to_add'    in result
         assert 'headers_to_remove' in result
-        assert 'x-mgraph-proxy'    in result['headers_to_add']
-        assert 'x-request-id'      in result['headers_to_add']
+        assert result['headers_to_add'] == {}                                                 # Upstream debug headers are opt-in (mitm-debug cookie / x-mitm-debug header)
 
     def test__process_request__with_show_cookie(self):                                        # Test with mitm-show cookie
         request_body = self.test_request_body.copy()
-        request_body['headers'] = {'cookie': 'mitm-show=url-to-html'}
+        request_body['headers'] = {'cookie': 'mitm-show=url-to-html; mitm-debug=true'}
 
         response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
@@ -107,7 +106,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
 
     def test__process_request__cookie_priority_over_query(self):                              # Test cookies override query params
         request_body = self.test_request_body.copy()
-        request_body['headers']      = {'cookie': 'mitm-show=url-to-html'}                   # Cookie value
+        request_body['headers']      = {'cookie': 'mitm-show=url-to-html; mitm-debug=true'}                   # Cookie value
         request_body['debug_params'] = {'show': 'url-to-text'}                               # Query param value
 
         response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
@@ -121,7 +120,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
 
     def test__process_request__with_cache_cookie(self):                                       # Test with mitm-cache cookie
         request_body = self.test_request_body.copy()
-        request_body['headers'] = {'cookie': 'mitm-cache=true'}
+        request_body['headers'] = {'cookie': 'mitm-cache=true; mitm-debug=true'}
 
         response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
@@ -134,7 +133,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
 
     def test__process_request__with_rating_cookie(self):                                      # Test with mitm-rating cookie
         request_body = self.test_request_body.copy()
-        request_body['headers'] = {'cookie': 'mitm-rating=0.7'}
+        request_body['headers'] = {'cookie': 'mitm-rating=0.7; mitm-debug=true'}
 
         response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
@@ -147,7 +146,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
 
     def test__process_request__with_model_cookie(self):                                       # Test with mitm-model cookie
         request_body = self.test_request_body.copy()
-        request_body['headers'] = {'cookie': 'mitm-model=gpt-4'}
+        request_body['headers'] = {'cookie': 'mitm-model=gpt-4; mitm-debug=true'}
 
         response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
@@ -160,7 +159,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
 
     def test__process_request__with_replace_cookie(self):                                     # Test with mitm-replace cookie
         request_body = self.test_request_body.copy()
-        request_body['headers'] = {'cookie': 'mitm-replace=Hello:Hi'}
+        request_body['headers'] = {'cookie': 'mitm-replace=Hello:Hi; mitm-debug=true'}
 
         response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
@@ -173,7 +172,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
 
     def test__process_request__with_inject_cookie(self):                                      # Test with mitm-inject cookie
         request_body = self.test_request_body.copy()
-        request_body['headers'] = {'cookie': 'mitm-inject=debug-panel'}
+        request_body['headers'] = {'cookie': 'mitm-inject=debug-panel; mitm-debug=true'}
 
         response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
@@ -220,7 +219,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
         for command in wcf_commands:
             with self.subTest(command=command):
                 request_body = self.test_request_body.copy()
-                request_body['headers'] = {'cookie': f'mitm-show={command}'}
+                request_body['headers'] = {'cookie': f'mitm-show={command}; mitm-debug=true'}
 
                 response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
@@ -263,7 +262,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
         for value, expected in rating_tests:
             with self.subTest(value=value):
                 request_body = self.test_request_body.copy()
-                request_body['headers'] = {'cookie': f'mitm-rating={value}'}
+                request_body['headers'] = {'cookie': f'mitm-rating={value}; mitm-debug=true'}
 
                 response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
@@ -276,8 +275,8 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
 
     def test__process_request__case_insensitive_cookie_header(self):                          # Test Cookie vs cookie header
         test_cases = [
-            {'cookie': 'mitm-show=url-to-html'},                                               # Lowercase
-            {'Cookie': 'mitm-show=url-to-html'}                                                # Uppercase
+            {'cookie': 'mitm-show=url-to-html; mitm-debug=true'},                                               # Lowercase
+            {'Cookie': 'mitm-show=url-to-html; mitm-debug=true'}                                                # Uppercase
         ]
 
         for headers in test_cases:
@@ -349,7 +348,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
                 'method'  : 'GET',
                 'host'    : 'example.com',
                 'path'    : '/test',
-                'headers' : {'cookie': 'mitm-show=url-to-html'}                               # Cookie value
+                'headers' : {'cookie': 'mitm-show=url-to-html; mitm-debug=true'}                               # Cookie value
             },
             'debug_params': {'show': 'url-to-text'},                                          # Query param value
             'response': {
@@ -422,7 +421,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
 
     def test__process_request__special_characters_in_values(self):                            # Test special characters in cookie values
         request_body = self.test_request_body.copy()
-        request_body['headers'] = {'cookie': 'mitm-replace=Hello:Hi%20There'}
+        request_body['headers'] = {'cookie': 'mitm-replace=Hello:Hi%20There; mitm-debug=true'}
 
         response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 
@@ -444,7 +443,7 @@ class test_Routes__Proxy__Cookies__client(TestCase):                            
     def test__process_request__very_long_cookie_value(self):                                  # Test long cookie values
         long_value = 'x' * 1000
         request_body = self.test_request_body.copy()
-        request_body['headers'] = {'cookie': f'mitm-model={long_value}'}
+        request_body['headers'] = {'cookie': f'mitm-model={long_value}; mitm-debug=true'}
 
         response = self.client.post('/proxy/process-request', headers=self.auth_headers(), json=request_body)
 

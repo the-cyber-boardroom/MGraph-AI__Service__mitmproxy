@@ -33,6 +33,16 @@ class test_Proxy__Request__Service(TestCase):
             version       = 'v1.0.0'
         )
 
+        cls.test_request_with_debug = Schema__Proxy__Request_Data(                           # Request opted in to the upstream debug headers
+            method        = 'GET',
+            host          = 'example.com',
+            path          = '/test',
+            original_path = '/test',
+            headers       = {'cookie': 'mitm-debug=true'},
+            stats         = {},
+            version       = 'v1.0.0'
+        )
+
         cls.test_request_with_cookies = Schema__Proxy__Request_Data(                         # Request with cookies
             method        = 'GET',
             host          = 'example.com',
@@ -65,9 +75,9 @@ class test_Proxy__Request__Service(TestCase):
             assert type(_.content_service) is Proxy__Content__Service
             assert type(_.cookie_service)  is Proxy__Cookie__Service
 
-    def test_process_request(self):                                                           # Test basic request processing
+    def test_process_request(self):                                                           # Test request processing with debug opt-in
         with self.service as _:
-            modifications = _.process_request(self.test_request_basic)
+            modifications = _.process_request(self.test_request_with_debug)
 
             assert type(modifications) is Schema__Proxy__Modifications
             assert 'x-mgraph-proxy'         in modifications.headers_to_add
@@ -119,7 +129,7 @@ class test_Proxy__Request__Service(TestCase):
             host          = 'example.com',
             path          = '/test',
             original_path = '/test',
-            headers       = {'cookie': 'mitm-show=url-to-html'},                             # Cookie param
+            headers       = {'cookie': 'mitm-show=url-to-html; mitm-debug=true'},            # Cookie param (debug opt-in so x-debug-params is added)
             stats         = {},
             version       = 'v1.0.0'
         )
@@ -175,22 +185,22 @@ class test_Proxy__Request__Service(TestCase):
 
     def test_process_request__version_headers(self):                                          # Test version headers are added
         with self.service as _:
-            modifications = _.process_request(self.test_request_basic)
+            modifications = _.process_request(self.test_request_with_debug)
 
             assert modifications.headers_to_add['y-version-interceptor'] == 'v1.0.0'
 
     def test_process_request__stats_header(self):                                             # Test stats header reflects count
         with self.service as _:
-            _.process_request(self.test_request_basic)                                        # First request
-            modifications = _.process_request(self.test_request_basic)                        # Second request
+            _.process_request(self.test_request_with_debug)                                   # First request
+            modifications = _.process_request(self.test_request_with_debug)                   # Second request
 
             stats_count = int(modifications.headers_to_add['x-stats-total-requests'])
             assert stats_count == 2                                                            # Two requests processed
 
     def test_process_request__request_id_unique(self):                                        # Test request IDs are unique
         with self.service as _:
-            mods1 = _.process_request(self.test_request_basic)
-            mods2 = _.process_request(self.test_request_basic)
+            mods1 = _.process_request(self.test_request_with_debug)
+            mods2 = _.process_request(self.test_request_with_debug)
 
             id1 = mods1.headers_to_add['x-request-id']
             id2 = mods2.headers_to_add['x-request-id']
@@ -199,7 +209,7 @@ class test_Proxy__Request__Service(TestCase):
 
     def test_process_request__timestamp_format(self):                                         # Test timestamp header format
         with self.service as _:
-            modifications = _.process_request(self.test_request_basic)
+            modifications = _.process_request(self.test_request_with_debug)
 
             timestamp = modifications.headers_to_add['x-processed-at']
             assert 'T' in timestamp                                                            # ISO format
@@ -274,8 +284,7 @@ class test_Proxy__Request__Service(TestCase):
         with self.service as _:
             modifications = _.process_request(request_no_headers)
 
-            assert 'x-mgraph-proxy' in modifications.headers_to_add                           # Basic headers added
-            assert 'x-proxy-cookies' not in modifications.headers_to_add                      # No cookie headers
+            assert modifications.headers_to_add == {}                                         # No debug opt-in, so no upstream headers
             assert len(modifications.headers_to_remove) == 0                                  # Nothing to remove
 
     def test__host_and_path_tracking(self):                                                    # Test host and path tracked in stats
@@ -294,9 +303,20 @@ class test_Proxy__Request__Service(TestCase):
 
             assert self.stats_service.stats.total_requests == 2
 
-    def test__standard_headers_always_present(self):                                           # Test standard headers always added
+    def test__debug_headers_are_opt_in(self):                                                  # Test upstream headers only sent when opted in
+        request_with_header = Schema__Proxy__Request_Data(
+            method='GET', host='example.com', path='/test',
+            original_path='/test', headers={'X-Mitm-Debug': 'true'}, stats={}, version='v1.0.0'
+        )
+
         with self.service as _:
-            modifications = _.process_request(self.test_request_basic)
+            assert _.process_request(self.test_request_basic).headers_to_add == {}             # Default: nothing sent upstream
+            assert 'x-mgraph-proxy' in _.process_request(self.test_request_with_debug).headers_to_add   # mitm-debug cookie opts in
+            assert 'x-mgraph-proxy' in _.process_request(request_with_header).headers_to_add            # x-mitm-debug header opts in (case-insensitive)
+
+    def test__standard_headers_always_present(self):                                           # Test standard headers all added when debug is on
+        with self.service as _:
+            modifications = _.process_request(self.test_request_with_debug)
 
             required_headers = [
                 'x-mgraph-proxy',
