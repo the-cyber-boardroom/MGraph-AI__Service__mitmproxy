@@ -14,4 +14,5 @@ jobs:
       target_deploy       : 'qa'
       should_increment_tag: true
       deploy_to_aws       : true
+      push_to_docker_hub  : true
     secrets: inherit
