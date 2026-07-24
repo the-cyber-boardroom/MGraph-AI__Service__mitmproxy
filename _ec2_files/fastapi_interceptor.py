@@ -127,7 +127,7 @@ async def request(flow: http.HTTPFlow) -> None:
     print(f"[REQUEST #{request_count}] {flow.request.method} {flow.request.pretty_host}{flow.request.path}")
 
     # Add tracking header
-    flow.request.headers["x-proxy-request-count"] = str(request_count)
+    #flow.request.headers["x-proxy-request-count"] = str(request_count)              # removed so that upstream proxy don't get these new headers
 
     # Prepare and send to FastAPI
     request_data = prepare_request_data(flow)
@@ -150,7 +150,7 @@ async def request(flow: http.HTTPFlow) -> None:
             print(f"  ❌ Request blocked")
             return
 
-        flow.request.headers["x-proxy-status"] = "fastapi-connected"
+        #flow.request.headers["x-proxy-status"] = "fastapi-connected"           # removed so that upstream proxy don't get these new headers
         print(f"  ✓ Modified via FastAPI")
     else:
         flow.request.headers["x-proxy-status"] = "fastapi-unavailable"
