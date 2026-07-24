@@ -1,6 +1,12 @@
 name: CI Pipeline - DEV
 on:
   workflow_dispatch:
+    inputs:
+      push_to_docker_hub:
+        description: 'Also push the Docker image to Docker Hub'
+        required: false
+        type: boolean
+        default: false
   push:
     branches:
       - dev
@@ -14,4 +20,5 @@ jobs:
       target_deploy       : 'dev'
       should_increment_tag: true
       deploy_to_aws       : false        # Lambda publish disabled; service now ships as a Docker Hub image
+      push_to_docker_hub  : ${{ inputs.push_to_docker_hub == true }}   # off on dev pushes; tick the checkbox on a manual run to push
     secrets: inherit

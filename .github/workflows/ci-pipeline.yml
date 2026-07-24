@@ -21,6 +21,10 @@ on:
         required: false
         type: boolean
         default: true
+      push_to_docker_hub:
+        required: false
+        type: boolean
+        default: true
     secrets:
       AWS_SECRET_ACCESS_KEY:
         required: false
@@ -163,7 +167,9 @@ jobs:
           fi
 
   docker_push:
-    if: needs.check-dockerhub-credentials.outputs.has-credentials == 'true'
+    if: |
+      needs.check-dockerhub-credentials.outputs.has-credentials == 'true' &&
+      inputs.push_to_docker_hub
     name: Build and Push to Docker Hub
     runs-on: ubuntu-latest
     needs: [check-dockerhub-credentials, increment-tag]   # increment-tag always runs, so version file is up to date

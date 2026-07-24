@@ -6,7 +6,7 @@ from osbot_docker.apis.API_Docker                                               
 from osbot_docker.apis.Docker_Container                                          import Docker_Container
 from osbot_docker.apis.Docker_Image                                              import Docker_Image
 from osbot_utils.type_safe.Type_Safe                                             import Type_Safe
-from osbot_utils.utils.Files                                                     import path_combine, file_exists, file_create, temp_folder
+from osbot_utils.utils.Files                                                     import path_combine, file_exists, file_create, folder_create, temp_folder
 from osbot_utils.utils.Misc                                                      import random_string_short, wait_for
 from mgraph_ai_service_mitmproxy.schemas.docker.Safe_Str__Docker__Container_Name import Safe_Str__Docker__Container_Name
 from mgraph_ai_service_mitmproxy.schemas.docker.Safe_Str__Docker__Image_Name     import Safe_Str__Docker__Image_Name
@@ -24,7 +24,8 @@ class Mitmproxy__Create__Docker_Container(Type_Safe):                    # Creat
     image_tag        : Safe_Str__Docker__Tag             = "latest"
     proxy_port       : Safe_UInt__Port                   = 8080
     web_port         : Safe_UInt__Port                   = 8081
-    certificates_path: str                               = None             # Path to certificates tar.gz or directory
+    certificates_path: str                               = None             # Path to certificates tar.gz or directory (baked into the image at build time)
+    local_certs_folder: str                              = None             # Host folder mounted as mitmproxy's confdir, so the CA persists across container rebuilds
 
     # def __enter__(self):
     #     self.setup()
@@ -165,11 +166,14 @@ CMD [{confdir_setting}"--listen-port", "8080", "--proxyauth", "{PROXY_AUTH_USER}
                           8081 : self.web_port  }                        # Web interface port
 
         # Prepare volumes if using default image or need to mount certificates
-        volumes = None
+        volumes = {}
         command = None
 
+        if self.local_certs_folder:                                      # mitmproxy generates its CA here on first start and reuses it on every rebuild
+            folder_create(self.local_certs_folder)
+            volumes[self.local_certs_folder] = {'bind': '/home/mitmproxy/.mitmproxy', 'mode': 'rw'}
+
         if not with_custom_script or self.image_name == "mitmproxy/mitmproxy":
-            volumes = {}
             command_parts = ['mitmdump', '--listen-port', '8080', '--set', 'block_global=false']
 
             # Mount {MITMPROXY__PYTHON_FILE} if available
@@ -178,8 +182,8 @@ CMD [{confdir_setting}"--listen-port", "8080", "--proxyauth", "{PROXY_AUTH_USER}
                 volumes[add_header_path] = {'bind': '/home/mitmproxy/{MITMPROXY__PYTHON_FILE}', 'mode': 'ro'}
                 command_parts.extend(['--script', '/home/mitmproxy/{MITMPROXY__PYTHON_FILE}'])
 
-            # Mount certificates if requested and not in image
-            if with_certificates and self.certificates_path:
+            # Mount certificates if requested and not in image (local_certs_folder already claims the confdir mount)
+            if with_certificates and self.certificates_path and not self.local_certs_folder:
                 # Extract certificates first if tar.gz
                 if self.certificates_path.endswith('.tar.gz'):
                     import tarfile
@@ -211,7 +215,7 @@ CMD [{confdir_setting}"--listen-port", "8080", "--proxyauth", "{PROXY_AUTH_USER}
 
         self.container = docker_image.create_container(command       = command              ,
                                                        name          = self.container_name  ,
-                                                       volumes       = volumes              ,
+                                                       volumes       = volumes or None      ,
                                                        port_bindings = port_bindings        ,
                                                        labels        = labels               ,
                                                        tty           = True                 )
