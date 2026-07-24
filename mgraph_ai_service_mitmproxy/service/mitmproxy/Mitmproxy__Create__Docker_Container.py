@@ -124,7 +124,7 @@ CMD [{confdir_setting}"--listen-port", "8080", "--proxyauth", "{PROXY_AUTH_USER}
                                   image_tag  = 'latest',
                                   api_docker = self.api_docker)
 
-        result = custom_image.build(path=build_context)
+        result = self.build_image(custom_image, build_context)
 
         # Cleanup temp directory
         shutil.rmtree(build_context)
@@ -135,6 +135,17 @@ CMD [{confdir_setting}"--listen-port", "8080", "--proxyauth", "{PROXY_AUTH_USER}
         from osbot_utils.utils.Dev import pprint
         pprint(result)
         return False
+
+    def build_image(self, custom_image, build_context):                  # like Docker_Image.build() but with rm/forcerm so intermediate build containers don't pile up as stopped containers
+        try:
+            image_name             = custom_image.image_name_with_tag()
+            (result, build_logs)   = custom_image.client_docker().images.build(path     = build_context,
+                                                                               tag      = image_name   ,
+                                                                               rm       = True         ,
+                                                                               forcerm  = True         )
+            return {'status': 'ok', 'image': result.attrs, 'tags': result.tags, 'build_logs': build_logs}
+        except Exception as error:
+            return {'status': 'error', 'error': str(error)}
 
     def create_container(self, with_custom_script=True, with_certificates=False):                 # Create mitmproxy container
         # Set default certificates path if not specified
