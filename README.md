@@ -1,6 +1,6 @@
 # MGraph AI Service — mitmproxy
 
-[![Current Release](https://img.shields.io/badge/release-v0.8.35-blue)](https://github.com/the-cyber-boardroom/MGraph-AI__Service__mitmproxy/releases)
+[![Current Release](https://img.shields.io/badge/release-v0.8.36-blue)](https://github.com/the-cyber-boardroom/MGraph-AI__Service__mitmproxy/releases)
 [![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.116.1-009688)](https://fastapi.tiangolo.com/)
 [![Docker](https://img.shields.io/badge/Docker-diniscruz%2Fmgraph--ai--service--mitmproxy-2496ED)](https://hub.docker.com/r/diniscruz/mgraph-ai-service-mitmproxy)
