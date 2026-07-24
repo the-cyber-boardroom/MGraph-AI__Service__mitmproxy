@@ -1,0 +1,71 @@
+# Local execution mode: run the DEPLOYED images from Docker Hub
+#
+#   docker compose up          # start both containers (service + mitmproxy)
+#   docker compose down        # stop them
+#   docker compose pull        # fetch the latest published images
+#
+# This runs the same service image that CI publishes to Docker Hub, so it is
+# the quickest way to verify a deployed image and the easiest way for other
+# devs/agents to start using the proxy without a Python environment.
+#
+# Configuration comes from a .env file next to this file (see .env.example).
+# All values have working defaults - `docker compose up` works with no .env at all.
+#
+# Once up:
+#   - HTTP/HTTPS proxy : localhost:8080   (auth: PROXY_AUTH_USER / PROXY_AUTH_PASS, default mitm-user/mitm-pass)
+#   - mitmweb UI       : http://localhost:8081
+#   - FastAPI service  : http://localhost:10011  (docs at /docs, console at /console)
+#   - CA certificate   : ./certs/mitmproxy-ca-cert.pem  (generated on first run, stable across restarts)
+
+services:
+
+  mitm-service:                                                       # The FastAPI "brain" - the image CI publishes to Docker Hub
+    image: diniscruz/mgraph-ai-service-mitmproxy:${SERVICE_VERSION:-latest}
+    container_name: mgraph-mitm-service
+    ports:
+      - "${SERVICE_PORT:-10011}:10011"
+    environment:
+      FAST_API__AUTH__API_KEY__NAME : ${FAST_API__AUTH__API_KEY__NAME:-x-api-key}
+      FAST_API__AUTH__API_KEY__VALUE: ${FAST_API__AUTH__API_KEY__VALUE:-local-dev-key}
+
+      # S3-backed cache + inject scripts (optional - needed for mitm-mode=inject, which loads sites/{domain}/filter.js from S3)
+      CACHE__SERVICE__BUCKET_NAME   : ${CACHE__SERVICE__BUCKET_NAME:-}
+      AWS_ACCESS_KEY_ID             : ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY         : ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_DEFAULT_REGION            : ${AWS_DEFAULT_REGION:-}        # do NOT use AWS_REGION - that switches the service into Lambda mode (see lambda_handler.py)
+
+      # AWS Comprehend proxy (optional - needed for sentiment modes like mitm-mode=xxx-negative)
+      AUTH__SERVICE__AWS__COMPREHEND__BASE_URL : ${AUTH__SERVICE__AWS__COMPREHEND__BASE_URL:-}
+      AUTH__SERVICE__AWS__COMPREHEND__KEY_NAME : ${AUTH__SERVICE__AWS__COMPREHEND__KEY_NAME:-}
+      AUTH__SERVICE__AWS__COMPREHEND__KEY_VALUE: ${AUTH__SERVICE__AWS__COMPREHEND__KEY_VALUE:-}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:10011/info/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  mitm-proxy:                                                         # The official mitmproxy image + the interceptor addon mounted from this repo
+    image: mitmproxy/mitmproxy:${MITMPROXY_VERSION:-latest}
+    container_name: mgraph-mitm-proxy
+    depends_on:
+      mitm-service:
+        condition: service_healthy
+    ports:
+      - "${PROXY_PORT:-8080}:8080"                                    # HTTP/HTTPS proxy
+      - "${PROXY_WEB_PORT:-8081}:8081"                                # mitmweb UI
+    volumes:
+      - ./_ec2_files/fastapi_interceptor.py:/home/mitmproxy/fastapi_interceptor.py:ro
+      - ./certs:/home/mitmproxy/.mitmproxy                            # persistent CA - same folder used by the other local execution modes
+    environment:
+      FASTAPI_BASE_URL     : http://mitm-service:10011                # service reached over the compose network
+      FASTAPI_API_KEY_NAME : ${FAST_API__AUTH__API_KEY__NAME:-x-api-key}
+      FASTAPI_API_KEY_VALUE: ${FAST_API__AUTH__API_KEY__VALUE:-local-dev-key}
+    command: >
+      mitmweb
+      --web-host 0.0.0.0
+      --web-port 8081
+      --listen-port 8080
+      --proxyauth ${PROXY_AUTH_USER:-mitm-user}:${PROXY_AUTH_PASS:-mitm-pass}
+      --script /home/mitmproxy/fastapi_interceptor.py
+      --set block_global=false
+      --set web_open_browser=false

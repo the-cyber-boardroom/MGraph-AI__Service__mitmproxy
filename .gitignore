@@ -214,3 +214,6 @@ mitmproxy-ca-cert.pem
 
 # Local mitmproxy CA certificates (generated on first container start, contains the CA private key)
 /certs/
+
+# docker-compose local execution mode env file
+.env
