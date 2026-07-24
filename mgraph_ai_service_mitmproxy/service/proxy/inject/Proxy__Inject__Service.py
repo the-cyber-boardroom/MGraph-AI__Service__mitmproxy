@@ -253,10 +253,12 @@ class Proxy__Inject__Service(Type_Safe):
         nonce_attr = f' nonce="{nonce}"' if nonce else ''
         script_tag = f'<script id="mitm-inject"{nonce_attr}>\n{script_code}\n</script>'
 
-        # Insert before </body>
-        body_close = html.lower().rfind('</body>')
-        if body_close >= 0:
-            modified = html[:body_close] + '\n' + script_tag + '\n' + html[body_close:]
+        # Insert before the last </body>, matching case-insensitively on the original string
+        # (indexing via html.lower() is unsafe: lowercasing can change string length, e.g. 'İ' → 'i̇')
+        body_close_matches = list(re.finditer(r'</body>', html, re.IGNORECASE))
+        if body_close_matches:
+            body_close = body_close_matches[-1].start()
+            modified   = html[:body_close] + '\n' + script_tag + '\n' + html[body_close:]
         else:
             modified = html + '\n' + script_tag
 
