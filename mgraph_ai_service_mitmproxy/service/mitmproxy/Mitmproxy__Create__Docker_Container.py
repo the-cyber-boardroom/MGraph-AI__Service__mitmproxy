@@ -67,10 +67,10 @@ class Mitmproxy__Create__Docker_Container(Type_Safe):                    # Creat
                     cert_commands = """\
 # Copy and extract certificates
 COPY mitmproxy-certs-backup.tar.gz /home/mitmproxy/
-RUN cd /home/mitmproxy && \    
-    mkdir ./certs && \
-    tar -xzf mitmproxy-certs-backup.tar.gz -C ./certs && \
-    ls -la .mitmproxy/ 
+RUN cd /home/mitmproxy && \\
+    mkdir ./certs && \\
+    tar -xzf mitmproxy-certs-backup.tar.gz -C ./certs && \\
+    ls -la .mitmproxy/
 """
                 elif file_exists(path_combine(self.certificates_path, '.mitmproxy')):
                     # Copy .mitmproxy directory
@@ -270,17 +270,29 @@ CMD [{confdir_setting}"--listen-port", "8080", "--proxyauth", "{PROXY_AUTH_USER}
 
     def test_proxy_connection(self):                                     # Test if proxy is working
         import requests
+        from urllib.parse import quote
 
-        proxy_url = f"http://localhost:{self.proxy_port}"
+        dotenv__file = path_combine(mitmproxy.path, '.build.env')        # same file used by build_custom_image, so credentials match the container's --proxyauth
+        load_dotenv(dotenv_path=dotenv__file, override=False)
+        proxy_auth_user = get_env('PROXY_AUTH_USER')
+        proxy_auth_pass = get_env('PROXY_AUTH_PASS')
+
+        if proxy_auth_user and proxy_auth_pass:
+            proxy_url = f"http://{quote(proxy_auth_user, safe='')}:{quote(proxy_auth_pass, safe='')}@localhost:{self.proxy_port}"
+        else:
+            proxy_url = f"http://localhost:{self.proxy_port}"
         proxies   = { 'http'  : proxy_url,
                       'https' : proxy_url }
 
 
         # Test request through proxy
-        response = requests.get('https://httpbin.org/headers',
-                              proxies = proxies              ,
-                              timeout = 2                    ,
-                              verify  = False                )
+        try:
+            response = requests.get('https://httpbin.org/headers',
+                                  proxies = proxies              ,
+                                  timeout = 2                    ,
+                                  verify  = False                )
+        except requests.exceptions.RequestException:                     # not reachable yet, or proxy rejected the credentials (407)
+            return False
 
         # Check if our custom header was added
         headers = response.json().get('headers', {})
