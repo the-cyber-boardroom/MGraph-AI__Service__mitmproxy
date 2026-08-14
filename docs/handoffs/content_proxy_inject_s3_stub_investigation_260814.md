@@ -31,6 +31,33 @@ Two distinct incidents produced the same visible symptom:
 Do not conflate the proven Sky Sports residual-patch failure with the unresolved
 original Sky News observation.
 
+## Live writable-layer test — 2026-08-14
+
+The implemented retry fix was installed **temporarily** into the running
+`cp-mitm-service` writable layer. This is not a deployment path; rotation or
+container recreation drops it.
+
+Full record:
+`docs/worklogs/260814/worklog_content_proxy_inject_live_test_260814.md`
+
+Result:
+
+- Instance `i-0293aa92fadff83da` (ASG `akeia-content-proxy-v2-dev`) SSM-online.
+- Live Cache Client was `0.33.0` (not 0.31.1). Only additive schemas/methods
+  were installed; the package was not downgraded.
+- `cp-mitm-service` restarted only; `cp-mitmproxy-ext` was not restarted.
+- `Proxy__Response__Service.py` drift preserved
+  (`c18e180d8c855eb40daab503fa241cd1563c2b724e556a5478b1253f223042c9`).
+- Deterministic in-container tests: ERROR→HIT, ERROR→ERROR, confirmed MISS
+  (mocked store), empty 200, cache-ID error twice — all passed. No real S3
+  publisher object was written.
+- Running-process HIT: existing Sky boot-warm loaded 270,472 chars (full
+  filter, not stub). Uvicorn started with no import errors.
+- Firefox was not used. Final live state: **patched**, rollback path
+  `/tmp/akeia-inject-retry-bak-260814/` inside the container.
+- Durable next step remains a Client release + mitmproxy image build, not
+  this writable-layer copy.
+
 ## Intended architecture (confirmed from source)
 
 Primary code:
@@ -264,13 +291,16 @@ stub for every other new domain. Sky Sports was the first such domain. The
 patched inject file was preserved on the host at
 `/tmp/akeia-inject-patched-260814/` before restoration.
 
-Current live state:
+Current live state (after 2026-08-14 writable-layer test):
 
-- `Proxy__Inject__Service.py`: restored to shipped source; container restarted.
+- `Proxy__Inject__Service.py`: disposable retry-fix install from `f354b4d`
+  (`625a49be…`). Lost on recreation.
+- Cache Client 0.33.0: additive HIT/MISS/ERROR result methods only.
 - `Proxy__Response__Service.py`: still locally patched with non-2xx skip,
-  `host=` passthrough, and Sky boot-warm.
-- Do not force-recreate the container before preserving/reviewing that remaining
-  patch.
+  `host=` passthrough, and Sky boot-warm (`c18e180d…`).
+- Backup/rollback: `/tmp/akeia-inject-retry-bak-260814/` in `cp-mitm-service`.
+- Do not force-recreate the container before preserving/reviewing the remaining
+  response-service patch.
 
 ## Original investigation plan (executed repo-first)
 
@@ -310,15 +340,18 @@ Current live state:
 - Diff live container files against image/repository source before drawing
   architectural conclusions.
 - Use IAM `akeia-filter-analysis` first. SSO requires James's explicit one-off
-  approval and must never be added to scripts.
+  approval and must never be added to scripts. The 2026-08-14 live test used
+  one-off `Dev-504558652080` with James's explicit authorisation; that is not
+  standing permission.
 
 ## Production-fix definition of done (not yet met)
 
-- Current characterization tests prove the opposite: a transient read failure
-  **can** create/overwrite a filter with the greenfield stub.
-- A later fix must add regression tests proving that transient failures do not
-  write, while confirmed true misses still create/inject the stub.
-- Missing versus error must be represented explicitly; it is not today.
+The 2026-08-14 writable-layer test on `cp-mitm-service` is **not** this
+definition of done. It is a disposable live proof only.
+
+- Repo tests now cover retry-once, confirmed-miss-only stub creation, and
+  no-write on ERROR. The live container currently has that code in its
+  writable layer; the image and Client release do not.
 - Any production code fix lands in the correct owning repository/repositories,
   not as a writable-container patch.
 - Remaining live `Proxy__Response__Service.py` drift is upstreamed or removed.
