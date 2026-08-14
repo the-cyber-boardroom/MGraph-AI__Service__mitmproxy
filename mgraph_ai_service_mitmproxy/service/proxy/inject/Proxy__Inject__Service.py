@@ -14,8 +14,11 @@ from typing                                                                     
 from urllib.parse                                                                    import urlparse
 from osbot_utils.type_safe.Type_Safe                                                 import Type_Safe
 from osbot_utils.helpers.cache.Cache__Hash__Generator                                import Cache__Hash__Generator
+from mgraph_ai_service_cache_client.schemas.cache.enums.Enum__Cache__Read__Status    import Enum__Cache__Read__Status
 from mgraph_ai_service_cache_client.schemas.cache.enums.Enum__Cache__Store__Strategy import Enum__Cache__Store__Strategy
 from mgraph_ai_service_mitmproxy.service.cache.Proxy__Cache__Service                 import Proxy__Cache__Service
+from mgraph_ai_service_mitmproxy.service.proxy.inject.schemas.Enum__Inject__Script__Load__Status import Enum__Inject__Script__Load__Status
+from mgraph_ai_service_mitmproxy.service.proxy.inject.schemas.Schema__Inject__Script__Load__Result import Schema__Inject__Script__Load__Result
 
 
 NONCE_PATTERN       = re.compile(r'<script[^>]+nonce=["\']([^"\']+)["\']', re.IGNORECASE)
@@ -23,6 +26,7 @@ INJECT_CACHE_KEY    = 'inject'                                        # Single c
 INJECT_ENTRY_FILE   = 'inject-entry'                                  # file_id for the cache entry
 INJECT_DATA_FILE_ID = 'data'                                          # data_file_id for script content
 EMPTY_STUB          = '// inject script for this domain — edit this file in S3 to activate\n'
+MAX_CACHE_READ_ATTEMPTS = 2
 
 
 class Proxy__Inject__Service(Type_Safe):
@@ -81,15 +85,37 @@ class Proxy__Inject__Service(Type_Safe):
         namespace  = self.cache_service.cache_config.namespace
         client     = self.cache_service.cache_client
 
-        # Try to find existing entry
-        try:
-            result = client.retrieve().retrieve__hash__cache_hash(cache_hash=cache_hash,
-                                                                   namespace=namespace)
-            if result:
-                self._cache_id = result.metadata.cache_id
-                return self._cache_id
-        except Exception as e:
-            print(f"    ⚠️ Inject cache lookup failed: {e}")
+        # Try to find existing entry. Only a confirmed miss may create it.
+        cache_entry_missing = False
+        for attempt in range(1, MAX_CACHE_READ_ATTEMPTS + 1):
+            try:
+                result = client.retrieve().retrieve__hash__cache_hash__cache_id__result(
+                    cache_hash = cache_hash,
+                    namespace  = namespace )
+
+                if result.status == Enum__Cache__Read__Status.HIT:
+                    self._cache_id = result.cache_id
+                    if attempt > 1:
+                        print(f"    ✅ Inject cache lookup recovered on attempt {attempt}")
+                    return self._cache_id
+
+                if result.status == Enum__Cache__Read__Status.MISS:
+                    cache_entry_missing = True
+                    break
+
+                print(f"    ⚠️ Inject cache lookup attempt {attempt} failed"
+                      f" ({result.error_type or 'CACHE_READ_ERROR'})")
+
+            except Exception as error:
+                print(f"    ⚠️ Inject cache lookup attempt {attempt} failed"
+                      f" ({type(error).__name__})")
+
+            if attempt < MAX_CACHE_READ_ATTEMPTS:
+                print("    🔄 Retrying inject cache lookup once")
+
+        if not cache_entry_missing:
+            print("    ⚠️ Inject cache lookup failed after 2 attempts — no cache write")
+            return None
 
         # Not found — create entry
         try:
@@ -132,9 +158,10 @@ class Proxy__Inject__Service(Type_Safe):
         #     return self._script_cache[domain]
 
         # 2. Load from S3
-        script = self._load_from_cache(domain)
+        load_result = self._load_from_cache(domain)
 
-        if script is not None:
+        if load_result.status == Enum__Inject__Script__Load__Status.HIT:
+            script = load_result.script
             # is_stub = self._is_stub(script)
             # self._script_cache[domain] = '' if is_stub else script
 
@@ -145,8 +172,17 @@ class Proxy__Inject__Service(Type_Safe):
             print(f"    📦 Loaded inject script for {domain} from S3 ({len(script):,} chars)")
             return script
 
-        # 3. Not in S3 → create empty stub
-        self._store_to_cache(domain, EMPTY_STUB)
+        if load_result.status == Enum__Inject__Script__Load__Status.ERROR:
+            print(f"    ⚠️ Inject script unavailable for {domain} after "
+                  f"{load_result.attempts} attempts — page returned without injection")
+            return ''
+
+        # 3. Confirmed not in S3 → create empty stub
+        stored = self._store_to_cache(domain, EMPTY_STUB)
+        if not stored:
+            print(f"    ⚠️ Inject stub store failed for {domain} — no stub injected")
+            return ''
+
         #self._script_cache[domain] = ''
         print(f"    🆕 Created inject stub for {domain} in S3 — edit to activate")
         return EMPTY_STUB
@@ -159,26 +195,52 @@ class Proxy__Inject__Service(Type_Safe):
         return all(line.strip() == '' or line.strip().startswith('//')
                    for line in stripped.split('\n'))
 
-    def _load_from_cache(self, domain: str) -> Optional[str]:
+    def _load_from_cache(self, domain: str) -> Schema__Inject__Script__Load__Result:
         """Load script from S3: cache_id + data_key = sites/{domain}/filter.js"""
         cache_id = self._get_or_create_cache_id()
         if not cache_id:
-            return None
+            return Schema__Inject__Script__Load__Result(
+                status     = Enum__Inject__Script__Load__Status.ERROR,
+                attempts   = 0,
+                error_type = 'CACHE_ID_UNAVAILABLE')
 
-        try:
-            result = self.cache_service.cache_client.data().retrieve().data__string__with__id_and_key(
-                cache_id     = cache_id,
-                namespace    = self.cache_service.cache_config.namespace,
-                data_key     = self.data_key_for_domain(domain),
-                data_file_id = INJECT_DATA_FILE_ID)
+        for attempt in range(1, MAX_CACHE_READ_ATTEMPTS + 1):
+            try:
+                result = self.cache_service.cache_client.data().retrieve().data__string__result__with__id_and_key(
+                    cache_id     = cache_id,
+                    namespace    = self.cache_service.cache_config.namespace,
+                    data_key     = self.data_key_for_domain(domain),
+                    data_file_id = INJECT_DATA_FILE_ID)
 
-            if result and result.strip():
-                return result
+                if result.status == Enum__Cache__Read__Status.HIT:
+                    if attempt > 1:
+                        print(f"    ✅ Cache read recovered for {domain} on attempt {attempt}")
+                    return Schema__Inject__Script__Load__Result(
+                        status   = Enum__Inject__Script__Load__Status.HIT,
+                        script   = result.value,
+                        attempts = attempt)
 
-        except Exception as e:
-            print(f"    ⚠️ Cache read failed for {domain}: {e}")
+                if result.status == Enum__Cache__Read__Status.MISS:
+                    return Schema__Inject__Script__Load__Result(
+                        status   = Enum__Inject__Script__Load__Status.MISS,
+                        attempts = attempt)
 
-        return None
+                error_type = result.error_type or 'CACHE_READ_ERROR'
+                print(f"    ⚠️ Cache read attempt {attempt} failed for {domain}"
+                      f" ({error_type})")
+
+            except Exception as error:
+                error_type = type(error).__name__
+                print(f"    ⚠️ Cache read attempt {attempt} failed for {domain}"
+                      f" ({error_type})")
+
+            if attempt < MAX_CACHE_READ_ATTEMPTS:
+                print(f"    🔄 Retrying cache read once for {domain}")
+
+        return Schema__Inject__Script__Load__Result(
+            status     = Enum__Inject__Script__Load__Status.ERROR,
+            attempts   = MAX_CACHE_READ_ATTEMPTS,
+            error_type = error_type)
 
     def _store_to_cache(self, domain: str, script: str) -> bool:
         """Store script to S3: cache_id + data_key = sites/{domain}/filter.js"""
@@ -187,13 +249,13 @@ class Proxy__Inject__Service(Type_Safe):
             return False
 
         try:
-            self.cache_service.cache_client.data_store().data__store_string__with__id_and_key(
+            result = self.cache_service.cache_client.data_store().data__store_string__with__id_and_key(
                 cache_id     = cache_id,
                 namespace    = self.cache_service.cache_config.namespace,
                 data_key     = self.data_key_for_domain(domain),
                 data_file_id = INJECT_DATA_FILE_ID,
                 body         = script)
-            return True
+            return bool(result)
 
         except Exception as e:
             print(f"    ⚠️ Cache write failed for {domain}: {e}")
